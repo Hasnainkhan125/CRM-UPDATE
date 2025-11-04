@@ -80,36 +80,31 @@ const Team = () => {
   }, [viewMember]);
 
   const handleAddNewMember = async () => {
-    if (!name || !age || !password || !email) {
-      setNotification({
-        open: true,
-        message: "Please fill all fields.",
-        severity: "error",
-      });
-      return;
-    }
+  if (!name || !age || !password || !email) {
+    setNotification({
+      open: true,
+      message: "Please fill all fields.",
+      severity: "error",
+    });
+    return;
+  }
 
-    try {
-      const res = await axios.post(API_URL, { name, age, email, password, access });
-      setTeamData([...teamData, res.data]);
-      setName("");
-      setAge("");
-      setPassword("");
-      setEmail("");
-      setAccess("user");
-      setNotification({
-        open: true,
-        message: "User added successfully!",
-        severity: "success",
-      });
-    } catch (err) {
-      setNotification({
-        open: true,
-        message: "Error adding user.",
-        severity: "error",
-      });
-    }
-  };
+  try {
+    const res = await axios.post(API_URL, { name, age, email, password, access });
+    const newMember = res.data;
+
+    // ✅ Update backend + localStorage (used by login page)
+    const saved = JSON.parse(localStorage.getItem("team-members")) || [];
+    saved.push(newMember);
+    localStorage.setItem("team-members", JSON.stringify(saved));
+
+    setTeamData([...teamData, newMember]);
+    setName(""); setAge(""); setPassword(""); setEmail(""); setAccess("user");
+    setNotification({ open: true, message: "User added successfully!", severity: "success" });
+  } catch (err) {
+    setNotification({ open: true, message: "Error adding user.", severity: "error" });
+  }
+};
 
   const handleDeleteMember = async (id) => {
     try {

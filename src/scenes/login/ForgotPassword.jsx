@@ -105,7 +105,7 @@ const ForgotPassword = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-         ckground:
+         background:
             "radial-gradient(circle at top left, #120126ff, #16012eff, #120126ff)",
           overflow: "hidden",
         }}
