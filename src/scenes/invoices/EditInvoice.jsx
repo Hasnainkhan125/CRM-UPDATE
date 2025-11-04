@@ -25,7 +25,7 @@ const EditInvoice = () => {
     email: "",
     cost: "",
     date: "",
-    agencyFee: "", // optional agency fee
+    agencyFee: "", // optional
     status: "Pending",
   });
 
@@ -54,7 +54,9 @@ const EditInvoice = () => {
     setTimeout(() => {
       const invoicesData = JSON.parse(localStorage.getItem("invoicesData")) || [];
       const updatedInvoices = invoicesData.map((inv) =>
-        inv.id === form.id ? { ...form, totalCost: parseFloat(form.cost) + (form.agencyFee ? parseFloat(form.agencyFee) : 0) } : inv
+        inv.id === form.id
+          ? { ...form, totalCost: parseFloat(form.cost) + (form.agencyFee ? parseFloat(form.agencyFee) : 0) }
+          : inv
       );
 
       localStorage.setItem("invoicesData", JSON.stringify(updatedInvoices));
@@ -62,9 +64,14 @@ const EditInvoice = () => {
       setSuccess(true);
 
       setTimeout(() => {
-        navigate("/invoices");
-      }, 1500);
+        // Navigate back to invoices list
+        navigate(-1); // goes back to previous page
+      }, 1000);
     }, 1000); // simulate loading
+  };
+
+  const handleCancel = () => {
+    navigate(-1); // go back to previous page
   };
 
   return (
@@ -78,11 +85,21 @@ const EditInvoice = () => {
           <Grid item xs={field === "email" ? 12 : 6} key={field}>
             <TextField
               name={field}
-              label={field === "agencyFee" ? "Agency Fee (Optional)" : field.charAt(0).toUpperCase() + field.slice(1)}
+              label={
+                field === "agencyFee"
+                  ? "Agency Fee (Optional)"
+                  : field.charAt(0).toUpperCase() + field.slice(1)
+              }
               fullWidth
               value={form[field]}
               onChange={handleChange}
-              type={field === "cost" || field === "agencyFee" ? "number" : field === "date" ? "date" : "text"}
+              type={
+                field === "cost" || field === "agencyFee"
+                  ? "number"
+                  : field === "date"
+                  ? "date"
+                  : "text"
+              }
               InputLabelProps={field === "date" ? { shrink: true } : {}}
             />
           </Grid>
@@ -121,7 +138,7 @@ const EditInvoice = () => {
           Save Changes
         </Button>
         <Button
-          onClick={() => navigate("/invoices")}
+          onClick={handleCancel}
           variant="contained"
           sx={{
             background: "linear-gradient(90deg, #ff6f00ff, #ff6f00ff)",

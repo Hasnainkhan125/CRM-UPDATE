@@ -21,14 +21,13 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
+import axios from "axios";
 
-// ✅ Make sure these components are default exports
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
 import StatBox from "../../components/StatBox";
 import ContactEmailForm from "../../components/ContactEmailForm";
 
-const TEAM_STORAGE_KEY = "team-members";
 const ADMIN_SESSION_KEY = "admin-access-granted";
 
 const Dashboard = () => {
@@ -37,8 +36,8 @@ const Dashboard = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
 
-  const [recentUsers, setRecentUsers] = useState([]);
-  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [recentUsers, setRecentUsers] = useState([]); // always array
+  const [totalRevenue, setTotalRevenue] = useState(0); 
   const [adminAccess, setAdminAccess] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,6 +45,7 @@ const Dashboard = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const ADMIN_PASSWORD = "admin123";
+  const API_URL = "http://localhost:5000/api";
 
   useEffect(() => {
     const timer = setTimeout(() => setLoadingPage(false), 2000);
@@ -53,20 +53,33 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const savedInvoices = JSON.parse(localStorage.getItem("invoicesData")) || [];
-    const revenue = savedInvoices.reduce(
-      (sum, invoice) => sum + parseFloat(invoice.cost || 0),
-      0
-    );
-    setTotalRevenue(revenue.toFixed(2));
+    const fetchDashboardData = async () => {
+      try {
+        const teamRes = await axios.get(`${API_URL}/team`);
+        // Fix: Ensure recentUsers is always an array
+        setRecentUsers(Array.isArray(teamRes.data) ? teamRes.data : []);
 
-    const sessionAccess = sessionStorage.getItem(ADMIN_SESSION_KEY);
-    if (sessionAccess === "true") setAdminAccess(true);
-  }, []);
+        try {
+          const invoiceRes = await axios.get(`${API_URL}/invoices`);
+          const revenue = Array.isArray(invoiceRes.data)
+            ? invoiceRes.data.reduce((sum, inv) => sum + parseFloat(inv.cost || 0), 0)
+            : 0;
+          setTotalRevenue(revenue);
+        } catch (err) {
+          console.warn("Invoices API not found — skipping revenue load.");
+          setTotalRevenue(0);
+        }
 
-  useEffect(() => {
-    const savedTeam = JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY)) || [];
-    setRecentUsers(savedTeam);
+        const sessionAccess = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        if (sessionAccess === "true") setAdminAccess(true);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setRecentUsers([]);
+        setTotalRevenue(0);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   const handleCloseSnackbar = () => setOpenSnackbar(false);
@@ -102,11 +115,7 @@ const Dashboard = () => {
         <CircularProgress color="secondary" size={80} thickness={5} />
         <Typography
           variant="h5"
-          sx={{
-            mt: 3,
-            fontWeight: "bold",
-            animation: "scroll 1.5s infinite",
-          }}
+          sx={{ mt: 3, fontWeight: "bold", animation: "scroll 1.5s infinite" }}
         >
           Loading Dashboard...
         </Typography>
@@ -146,7 +155,7 @@ const Dashboard = () => {
           }}
           onClick={() => {
             const profile = JSON.parse(localStorage.getItem("profileData"));
-            if (profile && profile.resume && profile.resume.data) {
+            if (profile?.resume?.data) {
               const link = document.createElement("a");
               link.href = profile.resume.data;
               link.download = profile.resume.name || "resume.pdf";
@@ -169,15 +178,9 @@ const Dashboard = () => {
         gap="20px"
       >
         {/* Stat Boxes */}
-        <Box
-          gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 3"}
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
-            title={recentUsers.length.toLocaleString()}
+            title={(recentUsers?.length ?? 0).toLocaleString()}
             subtitle="Total Users"
             progress="0.75"
             increase="+14%"
@@ -185,15 +188,9 @@ const Dashboard = () => {
           />
         </Box>
 
-        <Box
-          gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 3"}
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
-            title={`PK ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            title={`PK ${(totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             subtitle="Total Revenue"
             progress="0.50"
             increase="+21%"
@@ -201,13 +198,7 @@ const Dashboard = () => {
           />
         </Box>
 
-        <Box
-          gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 3"}
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
             title="32,441"
             subtitle="New Clients"
@@ -217,13 +208,7 @@ const Dashboard = () => {
           />
         </Box>
 
-        <Box
-          gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 3"}
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
             title="1,325,134"
             subtitle="Traffic Received"
@@ -241,7 +226,7 @@ const Dashboard = () => {
                 Revenue Generated
               </Typography>
               <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
-                $59,342.32
+                ${totalRevenue?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}
               </Typography>
             </Box>
             <IconButton>
@@ -286,14 +271,14 @@ const Dashboard = () => {
                 )}
               </Box>
             </Fade>
-          ) : recentUsers.length === 0 ? (
+          ) : (recentUsers ?? []).length === 0 ? (
             <Typography color={colors.grey[100]} p="15px">
               No recent users
             </Typography>
           ) : (
-            [...recentUsers].reverse().map((user) => (
+            [...(recentUsers ?? [])].reverse().map((user) => (
               <Box
-                key={user.id || user.email}
+                key={user._id || user.email}
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"

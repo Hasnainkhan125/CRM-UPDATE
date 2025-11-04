@@ -23,7 +23,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 
-const STORAGE_KEY = "contacts_data_v1";
+const API_URL = "http://localhost:5000/api/contacts"; // Backend URL
 
 const Contacts = () => {
   const theme = useTheme();
@@ -42,14 +42,12 @@ const Contacts = () => {
     address: "",
     pinCode: "",
     dob: "",
-    status: "",
+    status: "Pending",
     contactCode: "",
     batchNo: "",
     deleted: "No",
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
-
-  // New filter state
   const [filterData, setFilterData] = useState({
     name: "",
     mobile: "",
@@ -58,25 +56,26 @@ const Contacts = () => {
     search: "",
   });
 
+  // Fetch contacts from backend
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setContacts(JSON.parse(saved));
+    const fetchContacts = async () => {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        setContacts(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchContacts();
   }, []);
 
-  const saveToStorage = (data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  };
-
-  // Auto open pending approval confirmation
+  // Auto approve pending contacts
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
       contacts.forEach((contact) => {
-        if (
-          contact.status?.toLowerCase() === "pending" &&
-          contact.createdAt &&
-          now - contact.createdAt >= 4000
-        ) {
+        if (contact.status?.toLowerCase() === "pending" && contact.createdAt && now - new Date(contact.createdAt) >= 4000) {
           setConfirmDialog({ open: true, contact });
         }
       });
@@ -84,15 +83,22 @@ const Contacts = () => {
     return () => clearInterval(interval);
   }, [contacts]);
 
-  const handleConfirmApprove = () => {
+  const handleConfirmApprove = async () => {
     const contact = confirmDialog.contact;
-    const updatedContacts = contacts.map((c) =>
-      c.id === contact.id ? { ...c, status: "Approved" } : c
-    );
-    setContacts(updatedContacts);
-    saveToStorage(updatedContacts);
-    setSnackbar({ open: true, message: `${contact.name} approved successfully!`, severity: "success" });
-    setConfirmDialog({ open: false, contact: null });
+    try {
+      const res = await fetch(`${API_URL}/${contact._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...contact, status: "Approved" }),
+      });
+      const updated = await res.json();
+      setContacts(contacts.map(c => c._id === updated._id ? updated : c));
+      setSnackbar({ open: true, message: `${updated.name} approved successfully!`, severity: "success" });
+      setConfirmDialog({ open: false, contact: null });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to approve contact.");
+    }
   };
 
   const handleCancelConfirm = () => {
@@ -104,7 +110,7 @@ const Contacts = () => {
     setEditingContact(null);
     setFormData({
       name: "", mobile: "", email: "", type: "", address: "",
-      pinCode: "", dob: "", status: "", contactCode: "", batchNo: "", deleted: "No",
+      pinCode: "", dob: "", status: "Pending", contactCode: "", batchNo: "", deleted: "No",
     });
     setOpen(true);
   };
@@ -116,31 +122,48 @@ const Contacts = () => {
   };
 
   const handleDelete = (id) => setDeleteDialog({ open: true, contactId: id });
-  const confirmDelete = () => {
-    const id = deleteDialog.contactId;
-    const updated = contacts.filter((c) => c.id !== id);
-    setContacts(updated);
-    saveToStorage(updated);
-    setSnackbar({ open: true, message: "Contact deleted successfully!", severity: "success" });
-    setDeleteDialog({ open: false, contactId: null });
+
+  const confirmDelete = async () => {
+    try {
+      await fetch(`${API_URL}/${deleteDialog.contactId}`, { method: "DELETE" });
+      setContacts(contacts.filter(c => c._id !== deleteDialog.contactId));
+      setSnackbar({ open: true, message: "Contact deleted successfully!", severity: "success" });
+      setDeleteDialog({ open: false, contactId: null });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete contact.");
+    }
   };
+
   const cancelDelete = () => setDeleteDialog({ open: false, contactId: null });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.mobile) { alert("Please fill at least Name and Mobile."); return; }
-    const dataWithTimestamp = { ...formData, createdAt: editingContact?.createdAt || Date.now() };
-    let updatedContacts;
-    if (editingContact && editingContact.id !== undefined) {
-      updatedContacts = contacts.map((c) => c.id === editingContact.id ? { ...dataWithTimestamp, id: editingContact.id } : c);
-    } else {
-      const newId = contacts.length > 0 ? Number(contacts[contacts.length - 1].id) + 1 : 1;
-      updatedContacts = [...contacts, { ...dataWithTimestamp, id: newId }];
+    try {
+      if (editingContact) {
+        const res = await fetch(`${API_URL}/${editingContact._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        const updated = await res.json();
+        setContacts(contacts.map(c => c._id === updated._id ? updated : c));
+      } else {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        const newContact = await res.json();
+        setContacts([...contacts, newContact]);
+      }
+      setOpen(false);
+      setEditingContact(null);
+      setSnackbar({ open: true, message: editingContact ? "Contact updated!" : "Contact added!", severity: "success" });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save contact. Check backend connection.");
     }
-    setContacts(updatedContacts);
-    saveToStorage(updatedContacts);
-    setOpen(false);
-    setEditingContact(null);
-    setSnackbar({ open: true, message: editingContact ? "Contact updated successfully!" : "Contact added successfully!", severity: "success" });
   };
 
   const renderStatus = (status) => {
@@ -159,7 +182,7 @@ const Contacts = () => {
   };
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.25, minWidth: 60 },
+    { field: "id", headerName: "ID", flex: 0.25, minWidth: 60, valueGetter: (params) => params.row._id },
     { field: "name", headerName: "Name", flex: 1, minWidth: 160 },
     { field: "mobile", headerName: "Mobile", flex: 0.8, minWidth: 120 },
     { field: "email", headerName: "Email", flex: 1, minWidth: 160 },
@@ -181,13 +204,12 @@ const Contacts = () => {
       renderCell: (params) => (
         <Box display="flex" gap={1}>
           <Button size="small" variant="contained" onClick={() => handleEdit(params.row)} sx={{ background: "linear-gradient(90deg, #064ab1ff, #064ab1ff)", color: "#fff", textTransform: "none", borderRadius: "8px" }}>Edit</Button>
-          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)} title="Delete"><DeleteOutlineIcon /></IconButton>
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row._id)} title="Delete"><DeleteOutlineIcon /></IconButton>
         </Box>
       ),
     },
   ];
 
-  // Filtered contacts
   const filteredContacts = contacts.filter((c) =>
     c.name.toLowerCase().includes(filterData.name.toLowerCase()) &&
     c.mobile.toLowerCase().includes(filterData.mobile.toLowerCase()) &&
@@ -206,28 +228,78 @@ const Contacts = () => {
           <Button variant="contained" onClick={handleAddClick} sx={{ background: "linear-gradient(90deg, #064ab1ff, #064ab1ff)", color: "#fff", width: "140px", px: 2, fontWeight: 600, borderRadius: "5px" }}>+ Add Contact</Button>
         </Box>
 
-        {/* Filter Bar */}
-        <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "repeat(5, 1fr)" }} gap={2} mb={2}>
-          <TextField label="Name" size="small" value={filterData.name} onChange={(e) => setFilterData({ ...filterData, name: e.target.value })} />
-          <TextField label="Mobile" size="small" value={filterData.mobile} onChange={(e) => setFilterData({ ...filterData, mobile: e.target.value })} />
-          <TextField select label="Type" size="small" value={filterData.type} onChange={(e) => setFilterData({ ...filterData, type: e.target.value })}>
+        {/* Modernized Filter Section */}
+        <Paper elevation={3} sx={{
+          p: 2,
+          mb: 3,
+          borderRadius: "16px",
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          gap: 2,
+          alignItems: "center",
+          backgroundColor: theme.palette.mode === "dark" ? "#1f2937" : "#ffffff"
+        }}>
+          <TextField
+            label="Search"
+            size="small"
+            value={filterData.search}
+            onChange={(e) => setFilterData({ ...filterData, search: e.target.value })}
+            sx={{ flex: 2, minWidth: 150 }}
+          />
+          <TextField
+            label="Name"
+            size="small"
+            value={filterData.name}
+            onChange={(e) => setFilterData({ ...filterData, name: e.target.value })}
+            sx={{ flex: 1, minWidth: 120 }}
+          />
+          <TextField
+            label="Mobile"
+            size="small"
+            value={filterData.mobile}
+            onChange={(e) => setFilterData({ ...filterData, mobile: e.target.value })}
+            sx={{ flex: 1, minWidth: 120 }}
+          />
+          <TextField
+            select
+            label="Type"
+            size="small"
+            value={filterData.type}
+            onChange={(e) => setFilterData({ ...filterData, type: e.target.value })}
+            sx={{ flex: 1, minWidth: 120 }}
+          >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="Lead">Lead</MenuItem>
             <MenuItem value="Customer">Customer</MenuItem>
             <MenuItem value="Interested">Interested</MenuItem>
             <MenuItem value="Other">Other</MenuItem>
           </TextField>
-          <TextField select label="Status" size="small" value={filterData.status} onChange={(e) => setFilterData({ ...filterData, status: e.target.value })}>
+          <TextField
+            select
+            label="Status"
+            size="small"
+            value={filterData.status}
+            onChange={(e) => setFilterData({ ...filterData, status: e.target.value })}
+            sx={{ flex: 1, minWidth: 120 }}
+          >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="Pending">Pending</MenuItem>
             <MenuItem value="Approved">Approved</MenuItem>
             <MenuItem value="Rejected">Rejected</MenuItem>
           </TextField>
-          <TextField label="Search" size="small" value={filterData.search} onChange={(e) => setFilterData({ ...filterData, search: e.target.value })} />
-        </Box>
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={() => setFilterData({ name: "", mobile: "", type: "", status: "", search: "" })}
+            sx={{ borderRadius: "12px", height: "40px" }}
+          >
+            Clear
+          </Button>
+        </Paper>
 
         <Box height="65vh" sx={{ "& .MuiDataGrid-root": { border: "none" } }}>
-          <DataGrid rows={filteredContacts} columns={columns} getRowId={(r) => r.id} pageSize={25} rowsPerPageOptions={[10, 25, 50, 100]} />
+          <DataGrid rows={filteredContacts} columns={columns} getRowId={(r) => r._id} pageSize={25} rowsPerPageOptions={[10, 25, 50, 100]} />
         </Box>
       </Paper>
 

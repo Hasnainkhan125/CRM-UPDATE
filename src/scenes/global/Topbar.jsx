@@ -54,9 +54,10 @@ const Topbar = ({ user }) => {
   const profileOpen = Boolean(profileAnchor);
   const handleProfileClick = (event) => setProfileAnchor(event.currentTarget);
   const handleProfileClose = () => setProfileAnchor(null);
+
   const handleProfilePage = () => {
-    navigate("/profile");
     handleProfileClose();
+    navigate("/admin/profile");
   };
 
   // Profile picture
@@ -91,24 +92,25 @@ const Topbar = ({ user }) => {
     }, 2500);
   };
 
-  // 🔍 Search bar
+  // Search bar
   const [searchText, setSearchText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [loadingNav, setLoadingNav] = useState(false);
 
-  // ✅ Memoized search map to remove ESLint warning
+  // searchMap stores the path values
   const searchMap = useMemo(
     () => ({
       dashboard: "/dashboard",
       "manage team": "/team",
       "contact information": "/contacts",
       invoices: "/invoices",
-      profile: "/profile",
+      profile: "/profile", // must match actual route
       settings: "/settings",
     }),
     []
   );
 
+  // Generate suggestions based on searchText
   useEffect(() => {
     if (!searchText.trim()) {
       setSuggestions([]);
@@ -119,18 +121,21 @@ const Topbar = ({ user }) => {
       key.toLowerCase().includes(text)
     );
     setSuggestions(matches);
-  }, [searchText, searchMap]); // ✅ fixed dependency array
+  }, [searchText, searchMap]);
 
+  // Handle selection of a suggestion
   const handleSelectSuggestion = (key) => {
+    if (!key) return;
     setLoadingNav(true);
     setSuggestions([]);
     setSearchText("");
     setTimeout(() => {
       setLoadingNav(false);
       navigate(searchMap[key]);
-    }, 1200);
+    }, 300); // quick navigation
   };
 
+  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && suggestions.length > 0) {
       handleSelectSuggestion(suggestions[0]);
@@ -154,98 +159,76 @@ const Topbar = ({ user }) => {
       </Dialog>
 
       {/* Fullscreen Loading Overlay */}
-<Fade in={loadingLogout || loadingNav}>
-  <Box
-    sx={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      background: "linear-gradient(135deg, #120126ff, #120126ff, #120126ff)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      flexDirection: "column",
-      zIndex: 9999,
-      overflow: "hidden",
-    }}
-  >
-    {/* Logo with smooth pulse */}
-    <Box
-      component="img"
-      src="/assets/loading-logo.png"
-      alt="Loading Logo"
-      sx={{
-        width: 120,
-        height: 120,
-        objectFit: "contain",
-        mb: 3,
-        animation: "pulseRotate 2s infinite",
-      }}
-    />
-
-    {/* Loading Text */}
-    <Typography
-      variant="h5"
-      fontWeight="bold"
-      sx={{
-        color: "#fff",
-        fontFamily: "Poppins, sans-serif",
-        mb: 1,
-        textAlign: "center",
-      }}
-    >
-      Loading...
-    </Typography>
-    <Typography
-      sx={{
-        color: "#ccc",
-        fontSize: "0.95rem",
-        fontFamily: "Poppins, sans-serif",
-        textAlign: "center",
-        maxWidth: 300,
-      }}
-    >
-      Preparing your dashboard. Please wait.
-    </Typography>
-
-    {/* Keyframes for subtle rotation & pulse */}
-    <style>
-      {`
-        @keyframes pulseRotate {
-          0% { transform: scale(1) rotate(0deg); opacity: 1; }
-          50% { transform: scale(1.05) rotate(15deg); opacity: 0.85; }
-          100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-      `}
-    </style>
-  </Box>
-</Fade>
-
+      <Fade in={loadingLogout || loadingNav}>
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "linear-gradient(135deg, #120126ff, #120126ff, #120126ff)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            zIndex: 9999,
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            component="img"
+            src="/assets/loading-logo.png"
+            alt="Loading Logo"
+            sx={{
+              width: 120,
+              height: 120,
+              objectFit: "contain",
+              mb: 3,
+              animation: "pulseRotate 2s infinite",
+            }}
+          />
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            sx={{ color: "#fff", fontFamily: "Poppins, sans-serif", mb: 1, textAlign: "center" }}
+          >
+            Loading...
+          </Typography>
+          <Typography
+            sx={{
+              color: "#ccc",
+              fontSize: "0.95rem",
+              fontFamily: "Poppins, sans-serif",
+              textAlign: "center",
+              maxWidth: 300,
+            }}
+          >
+            Preparing your dashboard. Please wait.
+          </Typography>
+          <style>
+            {`
+              @keyframes pulseRotate {
+                0% { transform: scale(1) rotate(0deg); opacity: 1; }
+                50% { transform: scale(1.05) rotate(15deg); opacity: 0.85; }
+                100% { transform: scale(1) rotate(0deg); opacity: 1; }
+              }
+            `}
+          </style>
+        </Box>
+      </Fade>
 
       {/* Topbar Content */}
       <Box display="flex" justifyContent="space-between" p={2} position="relative">
         {/* Search Bar */}
-        <Box
-          display="flex"
-          flexDirection="column"
-          width={{ xs: "100%", sm: "250px" }}
-        >
+        <Box display="flex" flexDirection="column" width={{ xs: "100%", sm: "250px" }}>
           <Box
             display="flex"
             alignItems="center"
             sx={{
-              background:
-                theme.palette.mode === "dark"
-                  ? `linear-gradient(145deg, ${alpha(
-                      colors.primary[400],
-                      0.9
-                    )}, ${alpha(colors.primary[400], 0.7)})`
-                  : `linear-gradient(145deg, ${alpha(
-                      colors.primary[400],
-                      0.6
-                    )}, ${alpha(colors.primary[400], 0.8)})`,
+              background: theme.palette.mode === "dark"
+                ? `linear-gradient(145deg, ${alpha(colors.primary[400], 0.9)}, ${alpha(colors.primary[400], 0.7)})`
+                : `linear-gradient(145deg, ${alpha(colors.primary[400], 0.6)}, ${alpha(colors.primary[400], 0.8)})`,
               borderRadius: "50px",
               border: "1px solid black",
               px: 2,
@@ -257,10 +240,7 @@ const Topbar = ({ user }) => {
                 ml: 1,
                 flex: 1,
                 color: colors.grey[100],
-                "& input::placeholder": {
-                  color: colors.grey[100],
-                  opacity: 0.9,
-                },
+                "& input::placeholder": { color: colors.grey[100], opacity: 0.9 },
               }}
               placeholder="Search..."
               value={searchText}
@@ -277,20 +257,14 @@ const Topbar = ({ user }) => {
               <SearchIcon />
             </IconButton>
           </Box>
+
           {suggestions.length > 0 && (
-            <Paper
-              sx={{
-                mt: 0.5,
-                maxHeight: 200,
-                overflowY: "auto",
-                borderRadius: 1,
-              }}
-            >
+            <Paper sx={{ mt: 0.5, maxHeight: 200, overflowY: "auto", borderRadius: 1 }}>
               <List dense>
-                {suggestions.map((s) => (
-                  <ListItem key={s} disablePadding>
-                    <ListItemButton onClick={() => handleSelectSuggestion(s)}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                {suggestions.map((key) => (
+                  <ListItem key={key} disablePadding>
+                    <ListItemButton onClick={() => handleSelectSuggestion(key)}>
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
                     </ListItemButton>
                   </ListItem>
                 ))}
@@ -302,29 +276,17 @@ const Topbar = ({ user }) => {
         {/* Right-side Icons */}
         <Box display="flex" alignItems="center" ml={2}>
           <IconButton onClick={colorMode.toggleColorMode}>
-            {theme.palette.mode === "dark" ? (
-              <DarkModeOutlinedIcon />
-            ) : (
-              <LightModeOutlinedIcon />
-            )}
+            {theme.palette.mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
           </IconButton>
 
           <IconButton onClick={handleClick}>
-            <Badge
-              badgeContent={notifications.length}
-              color="error"
-              overlap="circular"
-            >
+            <Badge badgeContent={notifications.length} color="error" overlap="circular">
               <NotificationsIcon />
             </Badge>
           </IconButton>
 
           <IconButton onClick={handleProfileClick}>
-            <Avatar
-              src={profilePic}
-              alt={user?.name || "User"}
-              sx={{ width: 32, height: 32 }}
-            />
+            <Avatar src={profilePic} alt={user?.name || "User"} sx={{ width: 32, height: 32 }} />
           </IconButton>
         </Box>
 
@@ -333,9 +295,7 @@ const Topbar = ({ user }) => {
           anchorEl={anchorEl}
           open={open}
           onClose={handleClose}
-          PaperProps={{
-            sx: { mt: 1.5, minWidth: 250, backgroundColor: colors.primary[400] },
-          }}
+          PaperProps={{ sx: { mt: 1.5, minWidth: 250, backgroundColor: colors.primary[400] } }}
         >
           {notifications.length === 0 ? (
             <MenuItem disabled>No new notifications</MenuItem>
@@ -344,10 +304,7 @@ const Topbar = ({ user }) => {
               {notifications.map((n) => (
                 <MenuItem key={n.id}>{n.message}</MenuItem>
               ))}
-              <MenuItem
-                onClick={handleClear}
-                sx={{ color: "red", fontWeight: 600 }}
-              >
+              <MenuItem onClick={handleClear} sx={{ color: "red", fontWeight: 600 }}>
                 Clear all
               </MenuItem>
             </>
@@ -359,9 +316,7 @@ const Topbar = ({ user }) => {
           anchorEl={profileAnchor}
           open={profileOpen}
           onClose={handleProfileClose}
-          PaperProps={{
-            sx: { mt: 1.5, minWidth: 180, backgroundColor: colors.primary[400] },
-          }}
+          PaperProps={{ sx: { mt: 1.5, minWidth: 180, backgroundColor: colors.primary[400] } }}
         >
           <MenuItem onClick={handleProfilePage}>
             <PersonOutlineIcon sx={{ mr: 1 }} /> Profile

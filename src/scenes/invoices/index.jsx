@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -16,9 +16,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { tokens } from "../../theme";
-import { mockDataInvoices } from "../../data/mockData";
 import Header from "../../components/Header";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -28,6 +27,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import { useNotifications } from "../../context/NotificationContext";
+
+const API_URL = "http://localhost:5000/api/invoices"; // <-- Backend API
 
 const Invoices = () => {
   const theme = useTheme();
@@ -41,36 +42,39 @@ const Invoices = () => {
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    const savedInvoices = localStorage.getItem("invoicesData");
-    if (savedInvoices) {
-      setRows(JSON.parse(savedInvoices));
-    } else {
-      const dataWithTotal = mockDataInvoices.map((i) => ({
-        ...i,
-        totalCost: parseFloat(i.cost || 0) + parseFloat(i.agencyFee || 0),
-      }));
-      setRows(dataWithTotal);
-      localStorage.setItem("invoicesData", JSON.stringify(dataWithTotal));
+  // Fetch invoices from backend
+  const fetchInvoices = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setRows(data);
+    } catch (err) {
+      console.error("Failed to fetch invoices:", err);
+      alert("Failed to fetch invoices. Check backend connection.");
     }
-  }, []);
+  };
 
-  const saveToLocalStorage = (data) =>
-    localStorage.setItem("invoicesData", JSON.stringify(data));
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
 
   const handleDeleteClick = (invoice) => {
     setInvoiceToDelete(invoice);
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    const updatedRows = rows.filter((row) => row.id !== invoiceToDelete.id);
-    setRows(updatedRows);
-    saveToLocalStorage(updatedRows);
-    setDeleteDialogOpen(false);
-    setInvoiceToDelete(null);
-    setSuccess(true);
-    addNotification(`🗑 Invoice #${invoiceToDelete.id} deleted`);
+  const handleConfirmDelete = async () => {
+    try {
+      await fetch(`${API_URL}/${invoiceToDelete._id}`, { method: "DELETE" });
+      addNotification(`🗑 Invoice #${invoiceToDelete._id} deleted`);
+      setSuccess(true);
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+      fetchInvoices(); // refresh data
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete invoice. Check backend connection.");
+    }
   };
 
   const handleDeleteClose = () => {
@@ -78,24 +82,27 @@ const Invoices = () => {
     setInvoiceToDelete(null);
   };
 
-  const handleStatusClick = (invoice) => {
+  const handleStatusClick = async (invoice) => {
     if (invoice.status === "Pending") {
-      const updatedRows = rows.map((inv) =>
-        inv.id === invoice.id ? { ...inv, status: "Paid" } : inv
-      );
-      setRows(updatedRows);
-      saveToLocalStorage(updatedRows);
-      addNotification(`✅ Invoice #${invoice.id} marked as Paid`);
+      try {
+        const updatedInvoice = { ...invoice, status: "Paid" };
+        await fetch(`${API_URL}/${invoice._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedInvoice),
+        });
+        addNotification(`✅ Invoice #${invoice._id} marked as Paid`);
+        fetchInvoices();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update status. Check backend connection.");
+      }
     }
   };
 
   const totalInvoices = rows.length;
   const totalRevenue = rows
-    .reduce(
-      (sum, i) =>
-        sum + (parseFloat(i.cost || 0) + parseFloat(i.agencyFee || 0)),
-      0
-    )
+    .reduce((sum, i) => sum + (parseFloat(i.cost || 0) + parseFloat(i.agencyFee || 0)), 0)
     .toFixed(2);
   const totalPending = rows.filter((i) => i.status === "Pending").length;
 
@@ -106,7 +113,7 @@ const Invoices = () => {
   };
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.4 },
+    { field: "_id", headerName: "ID", flex: 0.4 },
     { field: "name", headerName: "Client Name", flex: 1 },
     { field: "phone", headerName: "Phone", flex: 0.8 },
     { field: "email", headerName: "Email", flex: 1.2 },
@@ -115,8 +122,7 @@ const Invoices = () => {
       headerName: "Amount",
       flex: 0.8,
       renderCell: (params) => {
-        const total =
-          parseFloat(params.row.cost || 0) + parseFloat(params.row.agencyFee || 0);
+        const total = parseFloat(params.row.cost || 0) + parseFloat(params.row.agencyFee || 0);
         return (
           <Typography fontWeight="bold" color={colors.greenAccent[500]}>
             PKR {total.toFixed(2)}
@@ -158,49 +164,15 @@ const Invoices = () => {
       flex: isMobile ? 1.5 : 1,
       sortable: false,
       renderCell: (params) => (
-        <Box
-          display="flex"
-          gap={isMobile ? 0.5 : 1}
-        >
-    <Button
-      size="small"
-      startIcon={<VisibilityIcon />}
-      onClick={() =>
-        navigate(`/invoices/view/${params.row.id}`, {
-          state: { invoice: params.row },
-        })
-      }
-      sx={{
-        color: "RoyalBlue",
-        borderColor: "RoyalBlue",
-        "&:hover": {
-          backgroundColor: "rgba(0, 47, 255, 0.1)",
-          borderColor: "red",
-        },
-      }}
-    >
-            {isMobile ? "" : ""}
-          </Button>
+        <Box display="flex" gap={isMobile ? 0.5 : 1}>
           <Button
-            color="warning"
             size="small"
-            startIcon={<EditIcon />}
-            onClick={() =>
-              navigate(`/invoices/edit/${params.row.id}`, {
-                state: { invoice: params.row },
-              })
-            }
-          >
-            {isMobile ? "" : ""}
-          </Button>
-          <Button
-            color="error"
-            size="small"
-            startIcon={<DeleteIcon />}
-            onClick={() => handleDeleteClick(params.row)}
-          >
-            {isMobile ? "" : ""}
-          </Button>
+            startIcon={<VisibilityIcon />}
+            onClick={() => navigate(`/admin/invoices/view/${params.row._id}`, { state: { invoice: params.row } })}
+            sx={{ color: "RoyalBlue", borderColor: "RoyalBlue", "&:hover": { backgroundColor: "rgba(0, 47, 255, 0.1)" } }}
+          />
+          <Button color="warning" size="small" startIcon={<EditIcon />} onClick={() => navigate(`/admin/invoices/edit/${params.row._id}`, { state: { invoice: params.row } })} />
+          <Button color="error" size="small" startIcon={<DeleteIcon />} onClick={() => handleDeleteClick(params.row)} />
         </Box>
       ),
     },
@@ -210,7 +182,6 @@ const Invoices = () => {
     <Box m={isMobile ? "10px" : "20px"}>
       <Header title="INVOICES" subtitle="Invoice Management System" />
 
-      {/* SUMMARY CARDS */}
       <Grid container spacing={2} mt={1}>
         {[
           {
@@ -239,10 +210,7 @@ const Invoices = () => {
                 alignItems: "center",
                 gap: 2,
                 justifyContent: "flex-start",
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(145deg, #1f2a40, #273552)"
-                    : "linear-gradient(145deg, #ffffff, #f3f3f3)",
+                background: theme.palette.mode === "dark" ? "linear-gradient(145deg, #1f2a40, #273552)" : "linear-gradient(145deg, #ffffff, #f3f3f3)",
                 transition: "all 0.3s ease",
               }}
             >
@@ -260,78 +228,39 @@ const Invoices = () => {
         ))}
       </Grid>
 
-      {/* DATA GRID */}
-      <Box
-        mt={2}
-        height={isMobile ? "60vh" : "65vh"}
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-            borderRadius: "12px",
-            overflowX: "auto",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            fontSize: isMobile ? "0.7rem" : "0.9rem",
-            fontWeight: 600,
-            background: theme.palette.mode === "dark" ? "#273552" : "#f3f3f3",
-          },
-          "& .MuiDataGrid-cell": {
-            fontSize: isMobile ? "0.75rem" : "0.9rem",
-            whiteSpace: "nowrap",
-          },
-        }}
-      >
-        <DataGrid rows={rows} columns={columns} hideFooter autoHeight={isMobile} />
+      <Box mt={2} height={isMobile ? "60vh" : "65vh"} sx={{ "& .MuiDataGrid-root": { border: "none", borderRadius: "12px", overflowX: "auto" }, "& .MuiDataGrid-columnHeaders": { fontSize: isMobile ? "0.7rem" : "0.9rem", fontWeight: 600, background: theme.palette.mode === "dark" ? "#273552" : "#f3f3f3" }, "& .MuiDataGrid-cell": { fontSize: isMobile ? "0.75rem" : "0.9rem", whiteSpace: "nowrap" } }}>
+        <DataGrid rows={rows} columns={columns} hideFooter autoHeight={isMobile} getRowId={(row) => row._id} />
       </Box>
 
-      {/* ADD BUTTON */}
       <Box mt={2} display="flex" justifyContent="flex-end">
         <Button
-          onClick={() => navigate("/invoices/add")}
+          onClick={() => navigate("/admin/invoices/add")}
           variant="contained"
           startIcon={<AddIcon />}
-          sx={{
-            background: "linear-gradient(90deg, #008CFF, #0057D9)",
-            fontWeight: "bold",
-            px: isMobile ? 1.5 : 3,
-            py: isMobile ? 0.8 : 1,
-            borderRadius: "12px",
-            fontSize: isMobile ? "0.75rem" : "1rem",
-          }}
+          sx={{ background: "linear-gradient(90deg, #008CFF, #0057D9)", fontWeight: "bold", px: isMobile ? 1.5 : 3, py: isMobile ? 0.8 : 1, borderRadius: "12px", fontSize: isMobile ? "0.75rem" : "1rem" }}
         >
           {isMobile ? "" : "+ New Invoice"}
         </Button>
       </Box>
 
-      {/* DELETE DIALOG */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs">
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this invoice?
-          </DialogContentText>
+          <DialogContentText>Are you sure you want to delete this invoice?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteClose} variant="outlined">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
-            Delete
-          </Button>
+          <Button onClick={handleDeleteClose} variant="outlined">Cancel</Button>
+          <Button onClick={handleConfirmDelete} variant="contained" color="error">Delete</Button>
         </DialogActions>
       </Dialog>
 
-      {/* SUCCESS SNACKBAR */}
-      <Snackbar
-        open={success}
-        autoHideDuration={3000}
-        onClose={() => setSuccess(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
+      <Snackbar open={success} autoHideDuration={3000} onClose={() => setSuccess(false)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert severity="success" variant="filled" sx={{ borderRadius: "8px" }}>
           Action completed successfully!
         </Alert>
       </Snackbar>
+
+      <Outlet />
     </Box>
   );
 };

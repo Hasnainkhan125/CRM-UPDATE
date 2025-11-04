@@ -52,7 +52,7 @@ const ViewInvoice = () => {
           if (!err) setQrCode(url);
         });
       } else {
-        navigate("/invoices");
+        navigate(-1); // Go back if invoice not found
       }
     }, 1000);
 
@@ -112,7 +112,7 @@ const ViewInvoice = () => {
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
         }}
       >
-        {/* ===== HEADER ===== */}
+        {/* HEADER */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center" gap={2}>
             <Box
@@ -123,7 +123,7 @@ const ViewInvoice = () => {
             />
             <Box>
               <Typography variant="h5" fontWeight="bold">
-              Pak Regin Estate
+                Pak Regin Estate
               </Typography>
               <Typography variant="body2">Email: info@mycompany.com</Typography>
               <Typography variant="body2">Phone: +92 314 0972575</Typography>
@@ -143,7 +143,7 @@ const ViewInvoice = () => {
 
         <Divider sx={{ mb: 3 }} />
 
-        {/* ===== CLIENT & INVOICE INFO ===== */}
+        {/* CLIENT & INVOICE INFO */}
         <Grid container spacing={3} mb={3}>
           <Grid item xs={12} sm={6}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
@@ -168,7 +168,7 @@ const ViewInvoice = () => {
           </Grid>
         </Grid>
 
-        {/* ===== ITEMS TABLE ===== */}
+        {/* ITEMS TABLE */}
         <Table sx={{ mb: 4 }}>
           <TableHead sx={{ background: colors.blueAccent[700] }}>
             <TableRow>
@@ -196,7 +196,7 @@ const ViewInvoice = () => {
           </TableBody>
         </Table>
 
-        {/* ===== TOTAL SECTION ===== */}
+        {/* TOTAL */}
         <Box display="flex" justifyContent="flex-end" mb={4}>
           <Box
             sx={{
@@ -219,19 +219,13 @@ const ViewInvoice = () => {
               <span>PKR 0.00</span>
             </Typography>
             <Divider sx={{ my: 1 }} />
-            <Typography
-              display="flex"
-              justifyContent="space-between"
-              fontWeight="bold"
-              color={colors.greenAccent[500]}
-            >
+            <Typography display="flex" justifyContent="space-between" fontWeight="bold" color={colors.greenAccent[500]}>
               <span>Total:</span>
               <span>PKR {totalCost}</span>
             </Typography>
           </Box>
         </Box>
 
-        {/* ===== FOOTER ===== */}
         <Divider sx={{ my: 3 }} />
         <Grid container justifyContent="space-between" alignItems="center">
           <Grid item>
@@ -249,24 +243,19 @@ const ViewInvoice = () => {
           </Grid>
         </Grid>
 
-        {/* ===== QR CODE ===== */}
+        {/* QR CODE */}
         {qrCode && (
           <Box display="flex" justifyContent="center" mt={4}>
             <Box
               component="img"
               src={qrCode}
               alt="Invoice QR"
-              sx={{
-                width: 100,
-                height: 100,
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
+              sx={{ width: 100, height: 100, borderRadius: "8px", border: "1px solid #ccc" }}
             />
           </Box>
         )}
 
-        {/* ===== BUTTONS ===== */}
+        {/* BUTTONS */}
         <Box mt={4} display="flex" justifyContent="flex-end" gap={2}>
           <Button
             variant="contained"
@@ -288,9 +277,9 @@ const ViewInvoice = () => {
               textTransform: "none",
               fontWeight: "bold",
             }}
-            onClick={() => navigate("/invoices")}
+            onClick={() => navigate(-1)} // <-- navigate back to previous page
           >
-            Back to Invoices
+            Back
           </Button>
         </Box>
       </Paper>

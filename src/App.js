@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import { NotificationProvider } from "./context/NotificationContext";
@@ -82,7 +82,7 @@ function App() {
               <Route path="help" element={<UserHelp />} />
             </Route>
 
-            {/* ✅ Admin Dashboard */}
+            {/* ✅ Admin Dashboard (single page) */}
             <Route
               path="/admin-dashboard"
               element={
@@ -98,7 +98,7 @@ function App() {
               }
             />
 
-            {/* ✅ Admin Panel (nested routes) */}
+            {/* ✅ Admin Panel (nested routes using Outlet) */}
             <Route
               path="/admin/*"
               element={
@@ -107,31 +107,31 @@ function App() {
                     <Sidebar isSidebar={isSidebar} />
                     <main className="content">
                       <Topbar setIsSidebar={setIsSidebar} user={currentUser} />
-                      <Routes>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="team" element={<Team />} />
-                        <Route path="contacts" element={<Contacts />} />
-                        <Route path="invoices" element={<Invoices />} />
-                        <Route path="invoices/add" element={<AddInvoice />} />
-                        <Route path="invoices/view/:id" element={<ViewInvoice />} />
-                        <Route path="invoices/edit/:id" element={<EditInvoice />} />
-                        <Route path="form" element={<Form />} />
-                        <Route path="bar" element={<Bar />} />
-                        <Route path="pie" element={<Pie />} />
-                        <Route path="line" element={<Line />} />
-                        <Route path="faq" element={<FAQ />} />
-                        <Route path="calendar" element={<Calendar />} />
-                        <Route path="geography" element={<Geography />} />
-                        <Route path="profile" element={<Profile />} />
-                        <Route path="admin-security" element={<AdminSecurity />} />
-                        <Route path="ai-dashboard" element={<AIDashboard />} />
-                        <Route path="*" element={<Navigate to="/admin/dashboard" />} />
-                      </Routes>
+                      <Outlet /> {/* ✅ This replaces the inner <Routes> */}
                     </main>
                   </div>
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="team" element={<Team />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="invoices" element={<Invoices />} />
+              <Route path="invoices/add" element={<AddInvoice />} />
+              <Route path="invoices/view/:id" element={<ViewInvoice />} />
+              <Route path="invoices/edit/:id" element={<EditInvoice />} />
+              <Route path="form" element={<Form />} />
+              <Route path="bar" element={<Bar />} />
+              <Route path="pie" element={<Pie />} />
+              <Route path="line" element={<Line />} />
+              <Route path="faq" element={<FAQ />} />
+              <Route path="calendar" element={<Calendar />} />
+              <Route path="geography" element={<Geography />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="admin-security" element={<AdminSecurity />} />
+              <Route path="ai-dashboard" element={<AIDashboard />} />
+              <Route path="*" element={<Navigate to="/admin/dashboard" />} />
+            </Route>
 
             {/* ✅ Catch-all */}
             <Route path="*" element={<Navigate to="/" />} />

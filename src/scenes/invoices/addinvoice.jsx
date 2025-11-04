@@ -17,10 +17,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 
-// Slide transition for Drawer
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
 });
+
+const API_URL = "http://localhost:5000/api/invoices"; // <-- Use your backend URL
 
 const AddInvoice = () => {
   const navigate = useNavigate();
@@ -42,34 +43,38 @@ const AddInvoice = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.phone || !form.email || !form.cost || !form.date) {
       alert("Please fill all required fields!");
       return;
     }
 
     setLoading(true);
-
-    // Simulate async save delay (e.g., API call)
-    setTimeout(() => {
-      const invoicesData = JSON.parse(localStorage.getItem("invoicesData")) || [];
-      const id = invoicesData.length ? invoicesData[invoicesData.length - 1].id + 1 : 1;
+    try {
       const totalCost = parseFloat(form.cost) + (form.agencyFee ? parseFloat(form.agencyFee) : 0);
-      const newInvoice = { id, ...form, totalCost };
 
-      invoicesData.push(newInvoice);
-      localStorage.setItem("invoicesData", JSON.stringify(invoicesData));
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, totalCost }),
+      });
+
+      if (!response.ok) throw new Error("Failed to add invoice");
 
       setLoading(false);
       setSuccess(true);
 
-      setTimeout(() => navigate("/invoices"), 1500);
-    }, 1500); // Loading delay
+      setTimeout(() => navigate("/admin/invoices"), 1500);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add invoice. Check backend connection.");
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
     setOpen(false);
-    setTimeout(() => navigate("/invoices"), 300);
+    setTimeout(() => navigate("/admin/invoices"), 300);
   };
 
   return (
@@ -80,16 +85,9 @@ const AddInvoice = () => {
       TransitionComponent={Transition}
       transitionDuration={{ enter: 800, exit: 500 }}
       PaperProps={{
-        sx: {
-          width: { xs: "100%", sm: 500 },
-          p: 3,
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-        },
+        sx: { width: { xs: "100%", sm: 500 }, p: 3, display: "flex", flexDirection: "column", height: "100%" },
       }}
     >
-      {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">Add New Invoice</Typography>
         <IconButton onClick={handleClose}>
@@ -99,28 +97,17 @@ const AddInvoice = () => {
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* Form Fields */}
       <Box flexGrow={1} overflow="auto">
         <Grid container spacing={2}>
           {["name", "phone", "email", "cost", "agencyFee", "date"].map((field) => (
             <Grid item xs={field === "email" ? 12 : 6} key={field}>
               <TextField
                 name={field}
-                label={
-                  field === "agencyFee"
-                    ? "Agency Fee (Optional)"
-                    : field.charAt(0).toUpperCase() + field.slice(1)
-                }
+                label={field === "agencyFee" ? "Agency Fee (Optional)" : field.charAt(0).toUpperCase() + field.slice(1)}
                 fullWidth
                 value={form[field]}
                 onChange={handleChange}
-                type={
-                  field === "cost" || field === "agencyFee"
-                    ? "number"
-                    : field === "date"
-                    ? "date"
-                    : "text"
-                }
+                type={field === "cost" || field === "agencyFee" ? "number" : field === "date" ? "date" : "text"}
                 InputLabelProps={field === "date" ? { shrink: true } : {}}
               />
             </Grid>
@@ -145,21 +132,12 @@ const AddInvoice = () => {
         </Grid>
       </Box>
 
-      {/* Buttons */}
       <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
         <Button
           variant="contained"
           onClick={handleSave}
           disabled={loading}
-          sx={{
-            background: "linear-gradient(90deg, #0478d8, #0478d8)",
-            fontWeight: "bold",
-            px: 3,
-            py: 1,
-            borderRadius: "12px",
-            minWidth: "130px",
-            height: "42px",
-          }}
+          sx={{ background: "linear-gradient(90deg, #0478d8, #0478d8)", fontWeight: "bold", px: 3, py: 1, borderRadius: "12px" }}
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : "Add Invoice"}
         </Button>
@@ -169,7 +147,6 @@ const AddInvoice = () => {
         </Button>
       </Box>
 
-      {/* Success Popup */}
       <Snackbar
         open={success}
         autoHideDuration={2000}

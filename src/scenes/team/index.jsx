@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -21,26 +22,23 @@ import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
 
-const LOCAL_STORAGE_KEY = "team-members";
+const API_URL = "http://localhost:5000/api/team";
 
 const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  // responsive breakpoints
-  const isXs = useMediaQuery(theme.breakpoints.down("sm")); // ~600px
-  const isSm = useMediaQuery(theme.breakpoints.down("md")); // ~900px
+  const isXs = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSm = useMediaQuery(theme.breakpoints.down("md"));
 
   const [teamData, setTeamData] = useState([]);
 
-  // Form states
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [access, setAccess] = useState("user");
 
-  // View/Edit member
   const [viewMember, setViewMember] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -49,20 +47,27 @@ const Team = () => {
   const [editEmail, setEditEmail] = useState("");
   const [editAccess, setEditAccess] = useState("");
 
-  // Snackbar / notifications
   const [notification, setNotification] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  // Ref for outside click detection
   const panelRef = useRef(null);
 
+  // Fetch team data from backend
   useEffect(() => {
-    const savedTeam = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (savedTeam) setTeamData(JSON.parse(savedTeam));
+    fetchTeamData();
   }, []);
+
+  const fetchTeamData = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setTeamData(res.data);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -70,20 +75,11 @@ const Team = () => {
         setViewMember(null);
       }
     };
-    if (viewMember) {
-      window.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      window.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (viewMember) window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [viewMember]);
 
-  const saveTeamData = (data) => {
-    setTeamData(data);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-  };
-
-  const handleAddNewMember = () => {
+  const handleAddNewMember = async () => {
     if (!name || !age || !password || !email) {
       setNotification({
         open: true,
@@ -93,45 +89,41 @@ const Team = () => {
       return;
     }
 
-    if (teamData.find((u) => u.email === email)) {
+    try {
+      const res = await axios.post(API_URL, { name, age, email, password, access });
+      setTeamData([...teamData, res.data]);
+      setName("");
+      setAge("");
+      setPassword("");
+      setEmail("");
+      setAccess("user");
       setNotification({
         open: true,
-        message: "Email already exists!",
+        message: "User added successfully!",
+        severity: "success",
+      });
+    } catch (err) {
+      setNotification({
+        open: true,
+        message: "Error adding user.",
         severity: "error",
       });
-      return;
     }
-
-    const newMember = {
-      id: teamData.length ? teamData[teamData.length - 1].id + 1 : 1,
-      name,
-      age,
-      password,
-      email,
-      access,
-    };
-
-    const updatedTeam = [...teamData, newMember];
-    saveTeamData(updatedTeam);
-
-    setName("");
-    setAge("");
-    setPassword("");
-    setEmail("");
-    setAccess("user");
-
-    setNotification({
-      open: true,
-      message: "User added successfully!",
-      severity: "success",
-    });
   };
 
-  const handleDeleteMember = (id) => {
-    const updatedTeam = teamData.filter((m) => m.id !== id);
-    saveTeamData(updatedTeam);
-    if (viewMember?.id === id) setViewMember(null);
-    setNotification({ open: true, message: "User deleted!", severity: "info" });
+  const handleDeleteMember = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      setTeamData(teamData.filter((m) => m._id !== id));
+      if (viewMember?._id === id) setViewMember(null);
+      setNotification({
+        open: true,
+        message: "User deleted!",
+        severity: "info",
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleViewMember = (member) => {
@@ -139,46 +131,46 @@ const Team = () => {
     setIsEditing(false);
   };
 
-const handleEditClick = () => {
-  if (!viewMember) return;
-  setIsEditing(true);
-  setEditName(viewMember.name || "");
-  setEditAge(viewMember.age || "");
-  setEditPassword(viewMember.password || "");
-  setEditEmail(viewMember.email || "");
-  setEditAccess(viewMember.access || "user");
-};
-
-
-const handleSaveEdit = () => {
-  const updatedMember = {
-    ...viewMember,
-    name: editName,
-    age: editAge,
-    password: editPassword,
-    email: editEmail,
-    access: editAccess, // ✅ correctly update access level
-  };
-    const updatedTeam = teamData.map((m) =>
-      m.id === viewMember.id ? updatedMember : m
-    );
-
- saveTeamData(updatedTeam);
-  setTeamData(updatedTeam);
-  setViewMember(updatedMember); // ✅ re-render with new data
-  setIsEditing(false);
-
-  setNotification({
-    open: true,
-    message: "User updated successfully!",
-    severity: "success",
-  });
-    setTimeout(() => setViewMember(null), 500);
+  const handleEditClick = () => {
+    if (!viewMember) return;
+    setIsEditing(true);
+    setEditName(viewMember.name || "");
+    setEditAge(viewMember.age || "");
+    setEditPassword(viewMember.password || "");
+    setEditEmail(viewMember.email || "");
+    setEditAccess(viewMember.access || "user");
   };
 
-  // columns definition (we'll filter for small screens)
+  const handleSaveEdit = async () => {
+    const updatedData = {
+      name: editName,
+      age: editAge,
+      email: editEmail,
+      password: editPassword,
+      access: editAccess,
+    };
+
+    try {
+      const res = await axios.put(`${API_URL}/${viewMember._id}`, updatedData);
+      const updatedTeam = teamData.map((m) =>
+        m._id === viewMember._id ? res.data : m
+      );
+      setTeamData(updatedTeam);
+      setViewMember(res.data);
+      setIsEditing(false);
+      setNotification({
+        open: true,
+        message: "User updated successfully!",
+        severity: "success",
+      });
+      setTimeout(() => setViewMember(null), 500);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const baseColumns = [
-    { field: "id", headerName: "ID", width: 60 },
+    { field: "_id", headerName: "ID", width: 180 },
     { field: "name", headerName: "Name", flex: 1, minWidth: 120 },
     { field: "age", headerName: "Age", width: 80 },
     { field: "email", headerName: "Email", flex: 1, minWidth: 150 },
@@ -218,7 +210,6 @@ const handleSaveEdit = () => {
       headerName: "Actions",
       width: 100,
       sortable: false,
-      filterable: false,
       renderCell: ({ row }) => (
         <Box display="flex" gap={1}>
           <IconButton
@@ -231,7 +222,7 @@ const handleSaveEdit = () => {
           </IconButton>
           <IconButton
             color="error"
-            onClick={() => handleDeleteMember(row.id)}
+            onClick={() => handleDeleteMember(row._id)}
             aria-label="delete"
             size="small"
           >
@@ -242,12 +233,10 @@ const handleSaveEdit = () => {
     },
   ];
 
-  // filter columns for small screens (e.g., hide password column)
   const columns = isXs
     ? baseColumns.filter((c) => c.field !== "password")
     : baseColumns;
 
-  // dynamically set DataGrid height based on viewport to avoid heavy scrolling
   const gridHeight = isXs ? 420 : isSm ? 520 : 520;
 
   return (
@@ -262,69 +251,40 @@ const handleSaveEdit = () => {
         flexWrap="wrap"
         sx={{
           alignItems: "flex-end",
-          // stack vertically on xs
           flexDirection: isXs ? "column" : "row",
           "& .MuiTextField-root": { minWidth: isXs ? "100%" : 180 },
         }}
       >
-        <TextField
-          label="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          size={isXs ? "small" : "medium"}
-        />
-        <TextField
-          label="Age"
-          type="number"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          size={isXs ? "small" : "medium"}
-        />
-        <TextField
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          size={isXs ? "small" : "medium"}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          size={isXs ? "small" : "medium"}
-        />
+        <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField label="Age" type="number" value={age} onChange={(e) => setAge(e.target.value)} />
+        <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <TextField
           select
           label="Access"
           value={access}
           onChange={(e) => setAccess(e.target.value)}
-          size={isXs ? "small" : "medium"}
         >
           <MenuItem value="admin">Admin</MenuItem>
           <MenuItem value="manager">Manager</MenuItem>
           <MenuItem value="user">User</MenuItem>
         </TextField>
 
- <Button
-  variant="contained"
-  onClick={handleAddNewMember}
-  size={isXs ? "large" : "large"}
-  sx={{
-    alignSelf: isXs ? "stretch" : "auto",
-    minWidth: 80,
-    height: 50,
-  background: '#e6b524ee',
-    color: "#fff",
-    fontWeight: 600,
-    borderRadius: "5px",
-    "&:hover": {
-      background: "#b58b0eee" // slightly darker on hover
-    },
-  }}
->
-  Add
-</Button>
-
+        <Button
+          variant="contained"
+          onClick={handleAddNewMember}
+          sx={{
+            minWidth: 80,
+            height: 50,
+            background: "#e6b524ee",
+            color: "#fff",
+            fontWeight: 600,
+            borderRadius: "5px",
+            "&:hover": { background: "#b58b0eee" },
+          }}
+        >
+          Add
+        </Button>
       </Box>
 
       {/* Team Table */}
@@ -341,7 +301,8 @@ const handleSaveEdit = () => {
         <DataGrid
           rows={teamData}
           columns={columns}
-          pageSize={isXs ? 5 : 5}
+          getRowId={(row) => row._id}
+          pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableSelectionOnClick
           sx={{
@@ -364,7 +325,6 @@ const handleSaveEdit = () => {
           right={0}
           height="100vh"
           width={isXs ? "100%" : isSm ? "60%" : "30%"}
-          maxWidth={isXs ? "100%" : "600px"}
           bgcolor={theme.palette.mode === "dark" ? "#1e1e2f" : "#fff"}
           color={theme.palette.mode === "dark" ? "#fff" : "#000"}
           boxShadow={6}
@@ -378,14 +338,13 @@ const handleSaveEdit = () => {
                 Member Details
               </Typography>
 
-              <Box component="form" noValidate autoComplete="off" display="grid" gap={12}>
+              <Box component="form" noValidate autoComplete="off" display="grid" gap={2}>
                 <TextField
                   label="Name"
                   value={isEditing ? editName : viewMember.name}
                   onChange={(e) => setEditName(e.target.value)}
                   InputProps={{ readOnly: !isEditing }}
                   fullWidth
-                  size={isXs ? "small" : "medium"}
                 />
                 <TextField
                   label="Age"
@@ -394,7 +353,6 @@ const handleSaveEdit = () => {
                   onChange={(e) => setEditAge(e.target.value)}
                   InputProps={{ readOnly: !isEditing }}
                   fullWidth
-                  size={isXs ? "small" : "medium"}
                 />
                 <TextField
                   label="Email"
@@ -402,7 +360,6 @@ const handleSaveEdit = () => {
                   onChange={(e) => setEditEmail(e.target.value)}
                   InputProps={{ readOnly: !isEditing }}
                   fullWidth
-                  size={isXs ? "small" : "medium"}
                 />
                 <TextField
                   label="Password"
@@ -411,10 +368,8 @@ const handleSaveEdit = () => {
                   onChange={(e) => setEditPassword(e.target.value)}
                   InputProps={{ readOnly: !isEditing }}
                   fullWidth
-                  size={isXs ? "small" : "medium"}
                 />
 
-                {/* Access Level Select for Edit Mode */}
                 {isEditing ? (
                   <TextField
                     select
@@ -422,7 +377,6 @@ const handleSaveEdit = () => {
                     value={editAccess}
                     onChange={(e) => setEditAccess(e.target.value)}
                     fullWidth
-                    size={isXs ? "small" : "medium"}
                   >
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="manager">Manager</MenuItem>
@@ -434,40 +388,21 @@ const handleSaveEdit = () => {
                     value={viewMember.access}
                     InputProps={{ readOnly: true }}
                     fullWidth
-                    size={isXs ? "small" : "medium"}
                   />
                 )}
               </Box>
 
-
-
-
               <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
                 {isEditing ? (
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={handleSaveEdit}
-                    size={isXs ? "small" : "medium"}
-                  >
+                  <Button variant="contained" color="secondary" onClick={handleSaveEdit}>
                     Save
                   </Button>
                 ) : (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleEditClick}
-                    size={isXs ? "small" : "medium"}
-                  >
+                  <Button variant="contained" color="primary" onClick={handleEditClick}>
                     Edit
                   </Button>
                 )}
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => setViewMember(null)}
-                  size={isXs ? "small" : "medium"}
-                >
+                <Button variant="outlined" color="secondary" onClick={() => setViewMember(null)}>
                   Close
                 </Button>
               </Box>
