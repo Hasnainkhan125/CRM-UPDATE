@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import {
   Box,
   Typography,
@@ -22,8 +21,6 @@ import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
 
-const API_URL = "http://localhost:5000/api/team";
-
 const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -32,7 +29,6 @@ const Team = () => {
   const isSm = useMediaQuery(theme.breakpoints.down("md"));
 
   const [teamData, setTeamData] = useState([]);
-
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [password, setPassword] = useState("");
@@ -55,20 +51,24 @@ const Team = () => {
 
   const panelRef = useRef(null);
 
-  // Fetch team data from backend
+  // ✅ Load team data from localStorage
   useEffect(() => {
-    fetchTeamData();
+    const stored = JSON.parse(localStorage.getItem("team-members")) || [];
+    const cleaned = stored.map((m) => ({
+      ...m,
+      _id: m._id || Date.now().toString() + Math.random().toString(16).slice(2),
+    }));
+    setTeamData(cleaned);
   }, []);
 
-  const fetchTeamData = async () => {
-    try {
-      const res = await axios.get(API_URL);
-      setTeamData(res.data);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    }
+  // ✅ Save data to localStorage + trigger dashboard refresh
+  const saveToLocalStorage = (data) => {
+    localStorage.setItem("team-members", JSON.stringify(data));
+    // Notify Dashboard to refresh its recent users
+    window.dispatchEvent(new Event("storage"));
   };
 
+  // Close side panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
@@ -79,53 +79,60 @@ const Team = () => {
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [viewMember]);
 
-  const handleAddNewMember = async () => {
-  if (!name || !age || !password || !email) {
-    setNotification({
-      open: true,
-      message: "Please fill all fields.",
-      severity: "error",
-    });
-    return;
-  }
-
-  try {
-    const res = await axios.post(API_URL, { name, age, email, password, access });
-    const newMember = res.data;
-
-    // ✅ Update backend + localStorage (used by login page)
-    const saved = JSON.parse(localStorage.getItem("team-members")) || [];
-    saved.push(newMember);
-    localStorage.setItem("team-members", JSON.stringify(saved));
-
-    setTeamData([...teamData, newMember]);
-    setName(""); setAge(""); setPassword(""); setEmail(""); setAccess("user");
-    setNotification({ open: true, message: "User added successfully!", severity: "success" });
-  } catch (err) {
-    setNotification({ open: true, message: "Error adding user.", severity: "error" });
-  }
-};
-
-  const handleDeleteMember = async (id) => {
-    try {
-      await axios.delete(`${API_URL}/${id}`);
-      setTeamData(teamData.filter((m) => m._id !== id));
-      if (viewMember?._id === id) setViewMember(null);
+  // ✅ Add new member
+  const handleAddNewMember = () => {
+    if (!name || !age || !password || !email) {
       setNotification({
         open: true,
-        message: "User deleted!",
-        severity: "info",
+        message: "Please fill all fields.",
+        severity: "error",
       });
-    } catch (err) {
-      console.error(err);
+      return;
     }
+
+    const newMember = {
+      _id: Date.now().toString(),
+      name,
+      age,
+      email,
+      password,
+      access,
+    };
+
+    const updatedData = [...teamData, newMember];
+    setTeamData(updatedData);
+    saveToLocalStorage(updatedData);
+
+    setName("");
+    setAge("");
+    setPassword("");
+    setEmail("");
+    setAccess("user");
+
+    setNotification({
+      open: true,
+      message: "User added successfully!",
+      severity: "success",
+    });
   };
 
+  // ✅ Delete member
+  const handleDeleteMember = (id) => {
+    const updated = teamData.filter((m) => m._id !== id);
+    setTeamData(updated);
+    saveToLocalStorage(updated);
+
+    if (viewMember?._id === id) setViewMember(null);
+    setNotification({ open: true, message: "User deleted!", severity: "info" });
+  };
+
+  // View member details
   const handleViewMember = (member) => {
     setViewMember(member);
     setIsEditing(false);
   };
 
+  // Enter edit mode
   const handleEditClick = () => {
     if (!viewMember) return;
     setIsEditing(true);
@@ -136,8 +143,10 @@ const Team = () => {
     setEditAccess(viewMember.access || "user");
   };
 
-  const handleSaveEdit = async () => {
+  // ✅ Save edited member
+  const handleSaveEdit = () => {
     const updatedData = {
+      ...viewMember,
       name: editName,
       age: editAge,
       email: editEmail,
@@ -145,23 +154,22 @@ const Team = () => {
       access: editAccess,
     };
 
-    try {
-      const res = await axios.put(`${API_URL}/${viewMember._id}`, updatedData);
-      const updatedTeam = teamData.map((m) =>
-        m._id === viewMember._id ? res.data : m
-      );
-      setTeamData(updatedTeam);
-      setViewMember(res.data);
-      setIsEditing(false);
-      setNotification({
-        open: true,
-        message: "User updated successfully!",
-        severity: "success",
-      });
-      setTimeout(() => setViewMember(null), 500);
-    } catch (err) {
-      console.error(err);
-    }
+    const updatedTeam = teamData.map((m) =>
+      m._id === viewMember._id ? updatedData : m
+    );
+
+    setTeamData(updatedTeam);
+    saveToLocalStorage(updatedTeam);
+    setViewMember(updatedData);
+    setIsEditing(false);
+
+    setNotification({
+      open: true,
+      message: "User updated successfully!",
+      severity: "success",
+    });
+
+    setTimeout(() => setViewMember(null), 500);
   };
 
   const baseColumns = [
@@ -179,7 +187,7 @@ const Team = () => {
         <Box
           width="80%"
           m="0 auto"
-          color={"white"}
+          color="white"
           p={1}
           display="flex"
           justifyContent="center"
@@ -236,7 +244,7 @@ const Team = () => {
 
   return (
     <Box m={isXs ? 1 : 2}>
-      <Header title="TEAM" subtitle="Manage Team Members" />
+      <Header title="TEAM" subtitle="Manage Team Members (Offline)" />
 
       {/* Add Member Form */}
       <Box
@@ -254,12 +262,7 @@ const Team = () => {
         <TextField label="Age" type="number" value={age} onChange={(e) => setAge(e.target.value)} />
         <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <TextField
-          select
-          label="Access"
-          value={access}
-          onChange={(e) => setAccess(e.target.value)}
-        >
+        <TextField select label="Access" value={access} onChange={(e) => setAccess(e.target.value)}>
           <MenuItem value="admin">Admin</MenuItem>
           <MenuItem value="manager">Manager</MenuItem>
           <MenuItem value="user">User</MenuItem>
@@ -311,7 +314,7 @@ const Team = () => {
         />
       </Box>
 
-      {/* Right Side Slide Panel */}
+      {/* Right Slide Panel */}
       <Slide direction="left" in={!!viewMember} mountOnEnter unmountOnExit>
         <Box
           ref={panelRef}

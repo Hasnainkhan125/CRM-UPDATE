@@ -19,13 +19,13 @@ const EditInvoice = () => {
   const invoice = location.state?.invoice;
 
   const [form, setForm] = useState({
-    id: "",
+    _id: "",
     name: "",
     phone: "",
     email: "",
     cost: "",
+    agencyFee: "",
     date: "",
-    agencyFee: "", // optional
     status: "Pending",
   });
 
@@ -43,6 +43,7 @@ const EditInvoice = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Update invoice in localStorage
   const handleSave = () => {
     if (!form.name || !form.phone || !form.email || !form.cost || !form.date) {
       alert("Please fill all required fields!");
@@ -52,32 +53,37 @@ const EditInvoice = () => {
     setLoading(true);
 
     setTimeout(() => {
-      const invoicesData = JSON.parse(localStorage.getItem("invoicesData")) || [];
-      const updatedInvoices = invoicesData.map((inv) =>
-        inv.id === form.id
-          ? { ...form, totalCost: parseFloat(form.cost) + (form.agencyFee ? parseFloat(form.agencyFee) : 0) }
+      const storedInvoices = JSON.parse(localStorage.getItem("invoices")) || [];
+
+      const updatedInvoices = storedInvoices.map((inv) =>
+        inv._id === form._id
+          ? {
+              ...form,
+              totalCost:
+                parseFloat(form.cost) +
+                (form.agencyFee ? parseFloat(form.agencyFee) : 0),
+            }
           : inv
       );
 
-      localStorage.setItem("invoicesData", JSON.stringify(updatedInvoices));
+      localStorage.setItem("invoices", JSON.stringify(updatedInvoices));
+
       setLoading(false);
       setSuccess(true);
 
-      setTimeout(() => {
-        // Navigate back to invoices list
-        navigate(-1); // goes back to previous page
-      }, 1000);
-    }, 1000); // simulate loading
+      // Redirect to invoice list after update
+      setTimeout(() => navigate("/admin/invoices"), 1200);
+    }, 800);
   };
 
   const handleCancel = () => {
-    navigate(-1); // go back to previous page
+    navigate("/admin/invoices");
   };
 
   return (
     <Box m="20px" position="relative">
       <Typography variant="h4" mb={2}>
-        Edit Invoice #{form.id}
+        Edit Invoice #{form._id}
       </Typography>
 
       <Grid container spacing={2}>
@@ -128,7 +134,7 @@ const EditInvoice = () => {
           onClick={handleSave}
           variant="contained"
           sx={{
-            background: "linear-gradient(90deg, #008cffff, #008cffff)",
+            background: "linear-gradient(90deg, #008cff, #008cff)",
             fontWeight: "bold",
             px: 3,
             py: 1,
@@ -137,11 +143,12 @@ const EditInvoice = () => {
         >
           Save Changes
         </Button>
+
         <Button
           onClick={handleCancel}
           variant="contained"
           sx={{
-            background: "linear-gradient(90deg, #ff6f00ff, #ff6f00ff)",
+            background: "linear-gradient(90deg, #ff6f00, #ff6f00)",
             fontWeight: "bold",
             px: 3,
             ml: 2,

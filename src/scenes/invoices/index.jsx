@@ -28,8 +28,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import { useNotifications } from "../../context/NotificationContext";
 
-const API_URL = "http://localhost:5000/api/invoices"; // <-- Backend API
-
 const Invoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -42,16 +40,16 @@ const Invoices = () => {
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // Fetch invoices from backend
-  const fetchInvoices = async () => {
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      setRows(data);
-    } catch (err) {
-      console.error("Failed to fetch invoices:", err);
-      alert("Failed to fetch invoices. Check backend connection.");
-    }
+  // ✅ Fetch invoices from localStorage
+  const fetchInvoices = () => {
+    const storedInvoices = JSON.parse(localStorage.getItem("invoices")) || [];
+    setRows(storedInvoices);
+  };
+
+  // ✅ Save invoices to localStorage
+  const saveInvoices = (data) => {
+    localStorage.setItem("invoices", JSON.stringify(data));
+    setRows(data);
   };
 
   useEffect(() => {
@@ -63,18 +61,14 @@ const Invoices = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    try {
-      await fetch(`${API_URL}/${invoiceToDelete._id}`, { method: "DELETE" });
-      addNotification(`🗑 Invoice #${invoiceToDelete._id} deleted`);
-      setSuccess(true);
-      setDeleteDialogOpen(false);
-      setInvoiceToDelete(null);
-      fetchInvoices(); // refresh data
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete invoice. Check backend connection.");
-    }
+  // ✅ Delete invoice locally
+  const handleConfirmDelete = () => {
+    const updatedInvoices = rows.filter((i) => i._id !== invoiceToDelete._id);
+    saveInvoices(updatedInvoices);
+    addNotification(`🗑 Invoice #${invoiceToDelete._id} deleted`);
+    setSuccess(true);
+    setDeleteDialogOpen(false);
+    setInvoiceToDelete(null);
   };
 
   const handleDeleteClose = () => {
@@ -82,27 +76,25 @@ const Invoices = () => {
     setInvoiceToDelete(null);
   };
 
-  const handleStatusClick = async (invoice) => {
+  // ✅ Update status locally
+  const handleStatusClick = (invoice) => {
     if (invoice.status === "Pending") {
-      try {
-        const updatedInvoice = { ...invoice, status: "Paid" };
-        await fetch(`${API_URL}/${invoice._id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedInvoice),
-        });
-        addNotification(`✅ Invoice #${invoice._id} marked as Paid`);
-        fetchInvoices();
-      } catch (err) {
-        console.error(err);
-        alert("Failed to update status. Check backend connection.");
-      }
+      const updatedInvoice = { ...invoice, status: "Paid" };
+      const updatedInvoices = rows.map((i) =>
+        i._id === invoice._id ? updatedInvoice : i
+      );
+      saveInvoices(updatedInvoices);
+      addNotification(`✅ Invoice #${invoice._id} marked as Paid`);
     }
   };
 
   const totalInvoices = rows.length;
   const totalRevenue = rows
-    .reduce((sum, i) => sum + (parseFloat(i.cost || 0) + parseFloat(i.agencyFee || 0)), 0)
+    .reduce(
+      (sum, i) =>
+        sum + (parseFloat(i.cost || 0) + parseFloat(i.agencyFee || 0)),
+      0
+    )
     .toFixed(2);
   const totalPending = rows.filter((i) => i.status === "Pending").length;
 
@@ -122,7 +114,8 @@ const Invoices = () => {
       headerName: "Amount",
       flex: 0.8,
       renderCell: (params) => {
-        const total = parseFloat(params.row.cost || 0) + parseFloat(params.row.agencyFee || 0);
+        const total =
+          parseFloat(params.row.cost || 0) + parseFloat(params.row.agencyFee || 0);
         return (
           <Typography fontWeight="bold" color={colors.greenAccent[500]}>
             PKR {total.toFixed(2)}
@@ -168,11 +161,33 @@ const Invoices = () => {
           <Button
             size="small"
             startIcon={<VisibilityIcon />}
-            onClick={() => navigate(`/admin/invoices/view/${params.row._id}`, { state: { invoice: params.row } })}
-            sx={{ color: "RoyalBlue", borderColor: "RoyalBlue", "&:hover": { backgroundColor: "rgba(0, 47, 255, 0.1)" } }}
+            onClick={() =>
+              navigate(`/admin/invoices/view/${params.row._id}`, {
+                state: { invoice: params.row },
+              })
+            }
+            sx={{
+              color: "RoyalBlue",
+              borderColor: "RoyalBlue",
+              "&:hover": { backgroundColor: "rgba(0, 47, 255, 0.1)" },
+            }}
           />
-          <Button color="warning" size="small" startIcon={<EditIcon />} onClick={() => navigate(`/admin/invoices/edit/${params.row._id}`, { state: { invoice: params.row } })} />
-          <Button color="error" size="small" startIcon={<DeleteIcon />} onClick={() => handleDeleteClick(params.row)} />
+          <Button
+            color="warning"
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={() =>
+              navigate(`/admin/invoices/edit/${params.row._id}`, {
+                state: { invoice: params.row },
+              })
+            }
+          />
+          <Button
+            color="error"
+            size="small"
+            startIcon={<DeleteIcon />}
+            onClick={() => handleDeleteClick(params.row)}
+          />
         </Box>
       ),
     },
@@ -182,20 +197,33 @@ const Invoices = () => {
     <Box m={isMobile ? "10px" : "20px"}>
       <Header title="INVOICES" subtitle="Invoice Management System" />
 
+      {/* Summary Cards */}
       <Grid container spacing={2} mt={1}>
         {[
           {
-            icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 30, color: colors.greenAccent[400] }} />,
+            icon: (
+              <ReceiptLongOutlinedIcon
+                sx={{ fontSize: 30, color: colors.greenAccent[400] }}
+              />
+            ),
             value: totalInvoices,
             label: "Total Invoices",
           },
           {
-            icon: <MonetizationOnOutlinedIcon sx={{ fontSize: 30, color: "#FFD700" }} />,
+            icon: (
+              <MonetizationOnOutlinedIcon
+                sx={{ fontSize: 30, color: "#FFD700" }}
+              />
+            ),
             value: `PKR ${totalRevenue}`,
             label: "Total Revenue",
           },
           {
-            icon: <PendingActionsOutlinedIcon sx={{ fontSize: 30, color: "#FFB300" }} />,
+            icon: (
+              <PendingActionsOutlinedIcon
+                sx={{ fontSize: 30, color: "#FFB300" }}
+              />
+            ),
             value: totalPending,
             label: "Pending",
           },
@@ -210,16 +238,25 @@ const Invoices = () => {
                 alignItems: "center",
                 gap: 2,
                 justifyContent: "flex-start",
-                background: theme.palette.mode === "dark" ? "linear-gradient(145deg, #1f2a40, #273552)" : "linear-gradient(145deg, #ffffff, #f3f3f3)",
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(145deg, #1f2a40, #273552)"
+                    : "linear-gradient(145deg, #ffffff, #f3f3f3)",
                 transition: "all 0.3s ease",
               }}
             >
               {card.icon}
               <Box>
-                <Typography variant={isMobile ? "body1" : "h6"} fontWeight="bold">
+                <Typography
+                  variant={isMobile ? "body1" : "h6"}
+                  fontWeight="bold"
+                >
                   {card.value}
                 </Typography>
-                <Typography color={colors.grey[300]} fontSize={isMobile ? "0.8rem" : "1rem"}>
+                <Typography
+                  color={colors.grey[300]}
+                  fontSize={isMobile ? "0.8rem" : "1rem"}
+                >
                   {card.label}
                 </Typography>
               </Box>
@@ -228,33 +265,85 @@ const Invoices = () => {
         ))}
       </Grid>
 
-      <Box mt={2} height={isMobile ? "60vh" : "65vh"} sx={{ "& .MuiDataGrid-root": { border: "none", borderRadius: "12px", overflowX: "auto" }, "& .MuiDataGrid-columnHeaders": { fontSize: isMobile ? "0.7rem" : "0.9rem", fontWeight: 600, background: theme.palette.mode === "dark" ? "#273552" : "#f3f3f3" }, "& .MuiDataGrid-cell": { fontSize: isMobile ? "0.75rem" : "0.9rem", whiteSpace: "nowrap" } }}>
-        <DataGrid rows={rows} columns={columns} hideFooter autoHeight={isMobile} getRowId={(row) => row._id} />
+      {/* Data Table */}
+      <Box
+        mt={2}
+        height={isMobile ? "60vh" : "65vh"}
+        sx={{
+          "& .MuiDataGrid-root": {
+            border: "none",
+            borderRadius: "12px",
+            overflowX: "auto",
+          },
+          "& .MuiDataGrid-columnHeaders": {
+            fontSize: isMobile ? "0.7rem" : "0.9rem",
+            fontWeight: 600,
+            background:
+              theme.palette.mode === "dark" ? "#273552" : "#f3f3f3",
+          },
+          "& .MuiDataGrid-cell": {
+            fontSize: isMobile ? "0.75rem" : "0.9rem",
+            whiteSpace: "nowrap",
+          },
+        }}
+      >
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          hideFooter
+          autoHeight={isMobile}
+          getRowId={(row) => row._id}
+        />
       </Box>
 
+      {/* Add Button */}
       <Box mt={2} display="flex" justifyContent="flex-end">
         <Button
           onClick={() => navigate("/admin/invoices/add")}
           variant="contained"
           startIcon={<AddIcon />}
-          sx={{ background: "linear-gradient(90deg, #008CFF, #0057D9)", fontWeight: "bold", px: isMobile ? 1.5 : 3, py: isMobile ? 0.8 : 1, borderRadius: "12px", fontSize: isMobile ? "0.75rem" : "1rem" }}
+          sx={{
+            background: "linear-gradient(90deg, #008CFF, #0057D9)",
+            fontWeight: "bold",
+            px: isMobile ? 1.5 : 3,
+            py: isMobile ? 0.8 : 1,
+            borderRadius: "12px",
+            fontSize: isMobile ? "0.75rem" : "1rem",
+          }}
         >
           {isMobile ? "" : "+ New Invoice"}
         </Button>
       </Box>
 
+      {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs">
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <DialogContentText>Are you sure you want to delete this invoice?</DialogContentText>
+          <DialogContentText>
+            Are you sure you want to delete this invoice?
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteClose} variant="outlined">Cancel</Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">Delete</Button>
+          <Button onClick={handleDeleteClose} variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={success} autoHideDuration={3000} onClose={() => setSuccess(false)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+      {/* Snackbar */}
+      <Snackbar
+        open={success}
+        autoHideDuration={3000}
+        onClose={() => setSuccess(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
         <Alert severity="success" variant="filled" sx={{ borderRadius: "8px" }}>
           Action completed successfully!
         </Alert>

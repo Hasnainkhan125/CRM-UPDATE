@@ -21,7 +21,6 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
-import axios from "axios";
 
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
@@ -29,6 +28,8 @@ import StatBox from "../../components/StatBox";
 import ContactEmailForm from "../../components/ContactEmailForm";
 
 const ADMIN_SESSION_KEY = "admin-access-granted";
+const ADMIN_PASSWORD = "admin123";
+const TEAM_KEY = "team-members"; // <-- use same key as Team.jsx
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -36,50 +37,120 @@ const Dashboard = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
 
-  const [recentUsers, setRecentUsers] = useState([]); // always array
-  const [totalRevenue, setTotalRevenue] = useState(0); 
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [adminAccess, setAdminAccess] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPage, setLoadingPage] = useState(true);
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const ADMIN_PASSWORD = "admin123";
-  const API_URL = "http://localhost:5000/api";
-
+  // simulate page loading
   useEffect(() => {
-    const timer = setTimeout(() => setLoadingPage(false), 2000);
+    const timer = setTimeout(() => setLoadingPage(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 
+  // Load data + sync with localStorage key "team-members"
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const teamRes = await axios.get(`${API_URL}/team`);
-        // Fix: Ensure recentUsers is always an array
-        setRecentUsers(Array.isArray(teamRes.data) ? teamRes.data : []);
+    const loadData = () => {
+      const storedUsersRaw = localStorage.getItem(TEAM_KEY);
+      const storedUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : null;
+      const storedRevenue = localStorage.getItem("totalRevenue");
 
-        try {
-          const invoiceRes = await axios.get(`${API_URL}/invoices`);
-          const revenue = Array.isArray(invoiceRes.data)
-            ? invoiceRes.data.reduce((sum, inv) => sum + parseFloat(inv.cost || 0), 0)
-            : 0;
-          setTotalRevenue(revenue);
-        } catch (err) {
-          console.warn("Invoices API not found — skipping revenue load.");
-          setTotalRevenue(0);
-        }
-
-        const sessionAccess = sessionStorage.getItem(ADMIN_SESSION_KEY);
-        if (sessionAccess === "true") setAdminAccess(true);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setRecentUsers([]);
-        setTotalRevenue(0);
+      if (storedUsers && Array.isArray(storedUsers)) {
+        // normalize fields so Dashboard always shows email/password/name
+        const cleaned = storedUsers.map((u) => ({
+          // keep existing fields, but ensure common properties exist
+          ...u,
+          email: u.email ?? u.emailAddress ?? u.username ?? "",
+          password: u.password ?? u.pw ?? u.pass ?? "",
+          name: u.name ?? u.fullName ?? "",
+        }));
+        setRecentUsers(cleaned);
+      } else {
+        // fallback default users (only used if no data saved yet)
+        const defaultUsers = [
+          {
+            _id: "1",
+            name: "Admin User",
+            age: 30,
+            email: "admin@gmail.com",
+            password: "admin123",
+            access: "admin",
+          },
+          {
+            _id: "2",
+            name: "John Doe",
+            age: 25,
+            email: "john@gmail.com",
+            password: "john123",
+            access: "manager",
+          },
+          {
+            _id: "3",
+            name: "Jane Smith",
+            age: 27,
+            email: "jane@gmail.com",
+            password: "jane123",
+            access: "user",
+          },
+        ];
+        setRecentUsers(defaultUsers);
+        localStorage.setItem(TEAM_KEY, JSON.stringify(defaultUsers));
       }
+
+      if (storedRevenue) {
+        setTotalRevenue(parseFloat(storedRevenue));
+      } else {
+        const defaultRevenue = 75230.55;
+        setTotalRevenue(defaultRevenue);
+        localStorage.setItem("totalRevenue", defaultRevenue.toString());
+      }
+
+      const sessionAccess = sessionStorage.getItem(ADMIN_SESSION_KEY);
+      if (sessionAccess === "true") setAdminAccess(true);
     };
 
-    fetchDashboardData();
+    loadData();
+
+    // handler to sync when localStorage changes in other tabs
+    const handleStorageEvent = (e) => {
+      // If event comes from other tab, e.key might be TEAM_KEY or null (clear).
+      // We'll simply re-read TEAM_KEY to update.
+      const updatedRaw = localStorage.getItem(TEAM_KEY);
+      const updated = updatedRaw ? JSON.parse(updatedRaw) : [];
+      const cleaned = (updated || []).map((u) => ({
+        ...u,
+        email: u.email ?? u.emailAddress ?? u.username ?? "",
+        password: u.password ?? u.pw ?? u.pass ?? "",
+        name: u.name ?? u.fullName ?? "",
+      }));
+      setRecentUsers(cleaned);
+    };
+
+    // custom event listener for same-tab updates (Team.jsx dispatches either "storage" or "teamDataUpdated")
+    const handleCustomUpdate = () => {
+      const updatedRaw = localStorage.getItem(TEAM_KEY);
+      const updated = updatedRaw ? JSON.parse(updatedRaw) : [];
+      const cleaned = (updated || []).map((u) => ({
+        ...u,
+        email: u.email ?? u.emailAddress ?? u.username ?? "",
+        password: u.password ?? u.pw ?? u.pass ?? "",
+        name: u.name ?? u.fullName ?? "",
+      }));
+      setRecentUsers(cleaned);
+    };
+
+    window.addEventListener("storage", handleStorageEvent);
+    window.addEventListener("teamDataUpdated", handleCustomUpdate);
+    // Team.jsx in the version I provided dispatches window.dispatchEvent(new Event("storage"));
+    // we still listen to "storage" above (same-tab dispatch to "storage" will also be caught here)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageEvent);
+      window.removeEventListener("teamDataUpdated", handleCustomUpdate);
+    };
   }, []);
 
   const handleCloseSnackbar = () => setOpenSnackbar(false);
@@ -96,7 +167,7 @@ const Dashboard = () => {
       }
       setPasswordInput("");
       setLoading(false);
-    }, 2000);
+    }, 1500);
   };
 
   if (loadingPage) {
@@ -113,21 +184,9 @@ const Dashboard = () => {
         }}
       >
         <CircularProgress color="secondary" size={80} thickness={5} />
-        <Typography
-          variant="h5"
-          sx={{ mt: 3, fontWeight: "bold", animation: "scroll 1.5s infinite" }}
-        >
+        <Typography variant="h5" sx={{ mt: 3, fontWeight: "bold" }}>
           Loading Dashboard...
         </Typography>
-        <style>
-          {`
-            @keyframes scroll {
-              0% { transform: translateY(0); opacity: 0.3; }
-              50% { transform: translateY(-10px); opacity: 1; }
-              100% { transform: translateY(0); opacity: 0.3; }
-            }
-          `}
-        </style>
       </Box>
     );
   }
@@ -190,7 +249,7 @@ const Dashboard = () => {
 
         <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
-            title={`PK ${(totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            title={`PK ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             subtitle="Total Revenue"
             progress="0.50"
             increase="+21%"
@@ -218,7 +277,7 @@ const Dashboard = () => {
           />
         </Box>
 
-        {/* ROW 2 - Revenue Chart */}
+        {/* Revenue Chart */}
         <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 6" : "span 8"} gridRow="span 2" backgroundColor={colors.primary[400]}>
           <Box mt="10px" p="10px 20px" display="flex" justifyContent="space-between" alignItems="center">
             <Box>
@@ -238,7 +297,7 @@ const Dashboard = () => {
           </Box>
         </Box>
 
-        {/* ROW 2 - Recent Users/Admin Access */}
+        {/* Recent Users */}
         <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 6" : "span 4"} gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
           <Box display="flex" justifyContent="space-between" alignItems="center" borderBottom={`4px solid ${colors.primary[500]}`} p="15px">
             <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
@@ -252,7 +311,6 @@ const Dashboard = () => {
                 <Typography variant="h6" color={colors.grey[500]} fontWeight="600" mb={2}>
                   🔒 Admin Access Required
                 </Typography>
-
                 <TextField
                   type="password"
                   label="Enter Admin Password"
@@ -261,7 +319,6 @@ const Dashboard = () => {
                   autoComplete="new-password"
                   sx={{ mb: 3, width: "75%" }}
                 />
-
                 {!loading ? (
                   <Button variant="contained" onClick={handleAdminAccess}>
                     Submit
@@ -271,14 +328,14 @@ const Dashboard = () => {
                 )}
               </Box>
             </Fade>
-          ) : (recentUsers ?? []).length === 0 ? (
+          ) : recentUsers.length === 0 ? (
             <Typography color={colors.grey[100]} p="15px">
               No recent users
             </Typography>
           ) : (
-            [...(recentUsers ?? [])].reverse().map((user) => (
+            [...recentUsers].reverse().map((user) => (
               <Box
-                key={user._id || user.email}
+                key={user._id ?? user.id ?? user.email}
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
@@ -286,7 +343,7 @@ const Dashboard = () => {
                 p="15px"
               >
                 <Box>
-                  <Typography color={colors.greenAccent[600]} variant="h8" fontWeight="600">
+                  <Typography color={colors.greenAccent[600]} fontWeight="600">
                     {user.email}
                   </Typography>
                   <Typography color={colors.grey[100]}>Password: {user.password}</Typography>
@@ -333,7 +390,7 @@ const Dashboard = () => {
         </Alert>
       </Snackbar>
 
-      {/* Email Chat Widget */}
+      {/* Contact Form */}
       <Box sx={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
         <ContactEmailForm />
       </Box>
