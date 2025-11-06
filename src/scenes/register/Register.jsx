@@ -123,7 +123,7 @@ const Register = () => {
           justifyContent: "center",
           alignItems: "center",
            background:
-            "radial-gradient(circle at top left, #120126ff, #16012eff, #120126ff)",
+            "radial-gradient(circle at top left, #e7e7e7ff, #ffffffff, #f5f5f5ff)",
           overflow: "hidden",
         }}
       >
@@ -136,18 +136,18 @@ const Register = () => {
             duration: 1,
             ease: "easeInOut",}}
           style={{
-          width: 100,
-            height: 100,
+          width: 70,
+            height: 70,
             borderRadius: "50%",
             border: "9px solid rgba(255,255,255,0.15)",
-            borderTop: "9px solid #ffb300",
+            borderTop: "9px solid #0080ffff",
             marginBottom: 30,
           }}
         />
 
         <motion.h2
           style={{
-            color: "#fff",
+            color: "#000000ff",
             fontSize: "1.8rem",
             letterSpacing: "2px",
             textAlign: "center",
@@ -173,7 +173,7 @@ const Register = () => {
             style={{
               height: "100%",
               width: "100%",
-              background: "linear-gradient(90deg, #ffb300, #ff9e00)",
+              background: "linear-gradient(90deg, #00bfffff, #00bfffff)",
             }}
             initial={{ x: "-100%" }}
             animate={{ x: "100%" }}
@@ -206,7 +206,7 @@ const Register = () => {
         justifyContent: "center",
         alignItems: "center",
         background:
-          "linear-gradient(135deg, #0d001cff 0%, #0d001cff 50%, #0d001cff 100%)",
+          "linear-gradient(135deg, #ffffffff 0%, #ffffffff 50%, #ffffffff 100%)",
         p: 2,
       }}
     >
@@ -217,10 +217,9 @@ const Register = () => {
           borderRadius: 5,
           width: "580px",
           textAlign: "center",
-          backdropFilter: "blur(16px)",
-          background: "rgba(255,255,255,0.08)",
+          background: "rgba(255, 255, 255, 1)",
           border: "1px solid rgba(255,255,255,0.2)",
-          color: "#fff",
+          color: "#000000ff",
         }}
       >
         {!isVerified ? (
@@ -230,10 +229,10 @@ const Register = () => {
               fontWeight="bold"
               mb={3}
               sx={{
-                background: "linear-gradient(90deg, #ffffff, #a78bfa)",
+              background: "rgba(3, 3, 3, 1)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-              }}
+              }}  
             >
               Enter Admin Reference Code
             </Typography>
@@ -244,12 +243,13 @@ const Register = () => {
               value={adminCodeInput}
               onChange={(e) => setAdminCodeInput(e.target.value)}
               margin="normal"
-              InputLabelProps={{ style: { color: "#ccc" } }}
+              InputLabelProps={{ style: { color: "#3a3a3aff" } }}
               InputProps={{
                 style: {
-                  color: "#fff",
+                  color: "#000000ff",
                   borderRadius: 12,
-                  background: "rgba(255,255,255,0.1)",
+                  border: '1px solid black',
+                  background: "rgba(255, 255, 255, 0.73)",
                 },
               }}
             />
@@ -266,7 +266,7 @@ const Register = () => {
                 textTransform: "none",
                 background: "linear-gradient(90deg, #ffb300, #ffb300)",
                 "&:hover": {
-                  background: "linear-gradient(90deg, #d59602, #d59602)",
+                  background: "linear-gradient(90deg, #e7a203ff, #e7a203ff)",
                   transform: "scale(1.02)",
                   transition: "0.3s ease",
                 },
@@ -283,7 +283,7 @@ const Register = () => {
               fontWeight="bold"
               mb={3}
               sx={{
-                background: "linear-gradient(90deg, #ffffff, #a78bfa)",
+                background: "linear-gradient(90deg, #111111ff, #261657ff)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -306,12 +306,12 @@ const Register = () => {
                   value={formData[field]}
                   onChange={handleChange}
                   margin="normal"
-                  InputLabelProps={{ style: { color: "#ccc" } }}
+                  InputLabelProps={{ style: { color: "#000000ff" } }}
                   InputProps={{
                     style: {
-                      color: "#fff",
+                      color: "#050303ff",
                       borderRadius: 12,
-                      background: "rgba(255,255,255,0.1)",
+                      background: "rgba(255, 255, 255, 0.72)",
                     },
                   }}
                 />
@@ -348,7 +348,7 @@ const Register = () => {
           sx={{
             mt: 3,
             cursor: "pointer",
-            color: "#a5b4fc",
+            color: "#686868ff",
             "&:hover": { textDecoration: "underline" },
           }}
           onClick={() => {

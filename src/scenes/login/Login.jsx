@@ -55,7 +55,7 @@ const Login = () => {
 
   // Loader animation
   useEffect(() => {
-    const timer = setTimeout(() => setShowLoader(false), 2000);
+    const timer = setTimeout(() => setShowLoader(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -197,21 +197,21 @@ const startVoiceLogin = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "radial-gradient(circle at top left, #120126, #16012e)",
+          background: "radial-gradient(circle at top left, #ffffffff, #ffffffff)",
         }}
       >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
           style={{
-            width: 100,
-            height: 100,
+            width: 70,
+            height: 70,
             borderRadius: "50%",
             border: "9px solid rgba(255,255,255,0.1)",
-            borderTop: "9px solid #ffb300",
+            borderTop: "9px solid #0080ffff",
           }}
         />
-        <Typography color="#fff" mt={3}>
+        <Typography color="#000000ff" mt={3}>
           Loading, please wait...
         </Typography>
       </Box>
@@ -226,7 +226,7 @@ const startVoiceLogin = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #0d001c, #16012e)",
+        background: "linear-gradient(135deg, #ffffffff, #ffffffff)",
         p: 3,
       }}
     >
@@ -234,13 +234,13 @@ const startVoiceLogin = () => {
         <Paper
           elevation={24}
           sx={{
-            p: 6,
+            p: 8 ,
+            height: '700px',
             borderRadius: 6,
-            width: "520px",
+            width: "720px",
             maxWidth: "90%",
-            background: "rgba(37, 1, 49, 0.45)",
-            backdropFilter: "blur(16px)",
-            color: "#fff",
+            background: "rgba(255, 255, 255, 1)",
+            color: "#000000ff",
             boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
             textAlign: "center",
             position: "relative",
@@ -268,8 +268,8 @@ const startVoiceLogin = () => {
                 ),
               }}
               sx={{
-                "& .MuiInputBase-input": { color: "#fff" },
-                "& .MuiInputLabel-root": { color: "#fff" },
+                "& .MuiInputBase-input": { color: "#000000ff" },
+                "& .MuiInputLabel-root": { color: "#000000ff" },
               }}
             />
             <motion.div
@@ -311,8 +311,8 @@ const startVoiceLogin = () => {
                 ),
               }}
               sx={{
-                "& .MuiInputBase-input": { color: "#fff" },
-                "& .MuiInputLabel-root": { color: "#fff" },
+                "& .MuiInputBase-input": { color: "#000000ff" },
+                "& .MuiInputLabel-root": { color: "#000000ff" },
               }}
             />
             <motion.div
@@ -341,13 +341,13 @@ const startVoiceLogin = () => {
                   }}
                 />
               }
-              label={<Typography sx={{ color: "#fff" }}>Remember Me</Typography>}
+              label={<Typography sx={{ color: "#000000ff" }}>Remember Me</Typography>}
             />
             <Typography
               sx={{
-                color: "#ccc",
+                color: "#000000ff",
                 cursor: "pointer",
-                "&:hover": { color: "#fff", textDecoration: "underline" },
+                "&:hover": { color: "#181818ff", textDecoration: "underline" },
               }}
               onClick={() => navigate("/forgot-password")}
             >
@@ -426,8 +426,8 @@ const startVoiceLogin = () => {
             sx={{
               mt: 3,
               textTransform: "none",
-              color: "#ccc",
-              "&:hover": { color: "#fff", textDecoration: "underline" },
+              color: "#000000ff",
+              "&:hover": { color: "#000000ff", textDecoration: "underline" },
             }}
           >
             Don’t have an account? Create one
