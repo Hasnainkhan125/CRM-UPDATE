@@ -70,9 +70,9 @@ const ForgotPassword = () => {
         <motion.div
           animate={{ scale: [1, 1.1, 1], rotate: [0, 360] }}
           transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
-          style={{ width: 80, height: 80, borderRadius: "50%", border: "10px solid rgba(0,0,0,0.1)", borderTop: "10px solid #ffb300", marginBottom: 30 }}
+          style={{ width: 80, height: 80, borderRadius: "50%", border: "10px solid rgba(0,0,0,0.1)", borderTop: "10px solid #0080ffff", marginBottom: 30 }}
         />
-        <motion.h2 animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} style={{ fontSize: "2rem", color: "#333", textAlign: "center" }}>
+        <motion.h2 animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} style={{ fontSize: "1.5rem", color: "#4b4b4bff", textAlign: "center" }}>
           Loading, please wait...
         </motion.h2>
       </Box>

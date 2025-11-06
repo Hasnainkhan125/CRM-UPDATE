@@ -167,7 +167,7 @@ const Topbar = ({ user }) => {
             left: 0,
             width: "100vw",
             height: "100vh",
-            background: "linear-gradient(135deg, #120126ff, #120126ff, #120126ff)",
+            background: "linear-gradient(135deg, #edededff, #edededff, #edededff)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -189,16 +189,17 @@ const Topbar = ({ user }) => {
             }}
           />
           <Typography
-            variant="h5"
+            variant="h2"
             fontWeight="bold"
-            sx={{ color: "#fff", fontFamily: "Poppins, sans-serif", mb: 1, textAlign: "center" }}
+            sx={{ color: "#000000ff", fontFamily: "Poppins, sans-serif", mb: 3, textAlign: "center" }}
           >
             Loading...
           </Typography>
           <Typography
             sx={{
-              color: "#ccc",
+              color: "#888787ff",
               fontSize: "0.95rem",
+              fontWeight: 700,
               fontFamily: "Poppins, sans-serif",
               textAlign: "center",
               maxWidth: 300,

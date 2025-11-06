@@ -211,9 +211,10 @@ const startVoiceLogin = () => {
             borderTop: "9px solid #0080ffff",
           }}
         />
-        <Typography color="#000000ff" mt={3}>
+        <motion.h2 animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} style={{ fontSize: "1.5rem", color: "#4b4b4bff", textAlign: "center" }}>
           Loading, please wait...
-        </Typography>
+        </motion.h2>
+
       </Box>
     );
   }
@@ -246,7 +247,7 @@ const startVoiceLogin = () => {
             position: "relative",
           }}
         >
-          <Typography variant="h4" fontWeight="bold" mb={4}>
+          <Typography variant="h2" fontWeight="bold" mb={4}>
             SIGN IN 👋
           </Typography>
 

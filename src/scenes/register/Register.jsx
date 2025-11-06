@@ -184,7 +184,7 @@ const Register = () => {
                 <Typography
                   sx={{
                     mt: 3,
-                    color: "#ccc",
+                    color: "#9e9e9eff",
                     fontSize: "0.95rem",
                     letterSpacing: "1px",
                     textAlign: "center",
@@ -225,7 +225,7 @@ const Register = () => {
         {!isVerified ? (
           <>
             <Typography
-              variant="h4"
+              variant="h3"
               fontWeight="bold"
               mb={3}
               sx={{
