@@ -24,12 +24,15 @@ import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
+import BarChart from "../../components/BarChart"; // Added
+import PieChart from "../../components/PieChart"; // Added
+import GeographyChart from "../../components/GeographyChart"; // Added
 import StatBox from "../../components/StatBox";
 import ContactEmailForm from "../../components/ContactEmailForm";
 
 const ADMIN_SESSION_KEY = "admin-access-granted";
 const ADMIN_PASSWORD = "admin123";
-const TEAM_KEY = "team-members"; // <-- use same key as Team.jsx
+const TEAM_KEY = "team-members";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -51,7 +54,7 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Load data + sync with localStorage key "team-members"
+  // Load data + sync with localStorage
   useEffect(() => {
     const loadData = () => {
       const storedUsersRaw = localStorage.getItem(TEAM_KEY);
@@ -59,9 +62,7 @@ const Dashboard = () => {
       const storedRevenue = localStorage.getItem("totalRevenue");
 
       if (storedUsers && Array.isArray(storedUsers)) {
-        // normalize fields so Dashboard always shows email/password/name
         const cleaned = storedUsers.map((u) => ({
-          // keep existing fields, but ensure common properties exist
           ...u,
           email: u.email ?? u.emailAddress ?? u.username ?? "",
           password: u.password ?? u.pw ?? u.pass ?? "",
@@ -69,32 +70,10 @@ const Dashboard = () => {
         }));
         setRecentUsers(cleaned);
       } else {
-        // fallback default users (only used if no data saved yet)
         const defaultUsers = [
-          {
-            _id: "1",
-            name: "Admin User",
-            age: 30,
-            email: "admin@gmail.com",
-            password: "admin123",
-            access: "admin",
-          },
-          {
-            _id: "2",
-            name: "John Doe",
-            age: 25,
-            email: "john@gmail.com",
-            password: "john123",
-            access: "manager",
-          },
-          {
-            _id: "3",
-            name: "Jane Smith",
-            age: 27,
-            email: "jane@gmail.com",
-            password: "jane123",
-            access: "user",
-          },
+          { _id: "1", name: "Admin User", age: 30, email: "admin@gmail.com", password: "admin123", access: "admin" },
+          { _id: "2", name: "John Doe", age: 25, email: "john@gmail.com", password: "john123", access: "manager" },
+          { _id: "3", name: "Jane Smith", age: 27, email: "jane@gmail.com", password: "jane123", access: "user" },
         ];
         setRecentUsers(defaultUsers);
         localStorage.setItem(TEAM_KEY, JSON.stringify(defaultUsers));
@@ -114,23 +93,7 @@ const Dashboard = () => {
 
     loadData();
 
-    // handler to sync when localStorage changes in other tabs
-    const handleStorageEvent = (e) => {
-      // If event comes from other tab, e.key might be TEAM_KEY or null (clear).
-      // We'll simply re-read TEAM_KEY to update.
-      const updatedRaw = localStorage.getItem(TEAM_KEY);
-      const updated = updatedRaw ? JSON.parse(updatedRaw) : [];
-      const cleaned = (updated || []).map((u) => ({
-        ...u,
-        email: u.email ?? u.emailAddress ?? u.username ?? "",
-        password: u.password ?? u.pw ?? u.pass ?? "",
-        name: u.name ?? u.fullName ?? "",
-      }));
-      setRecentUsers(cleaned);
-    };
-
-    // custom event listener for same-tab updates (Team.jsx dispatches either "storage" or "teamDataUpdated")
-    const handleCustomUpdate = () => {
+    const handleStorageEvent = () => {
       const updatedRaw = localStorage.getItem(TEAM_KEY);
       const updated = updatedRaw ? JSON.parse(updatedRaw) : [];
       const cleaned = (updated || []).map((u) => ({
@@ -143,13 +106,11 @@ const Dashboard = () => {
     };
 
     window.addEventListener("storage", handleStorageEvent);
-    window.addEventListener("teamDataUpdated", handleCustomUpdate);
-    // Team.jsx in the version I provided dispatches window.dispatchEvent(new Event("storage"));
-    // we still listen to "storage" above (same-tab dispatch to "storage" will also be caught here)
+    window.addEventListener("teamDataUpdated", handleStorageEvent);
 
     return () => {
       window.removeEventListener("storage", handleStorageEvent);
-      window.removeEventListener("teamDataUpdated", handleCustomUpdate);
+      window.removeEventListener("teamDataUpdated", handleStorageEvent);
     };
   }, []);
 
@@ -184,7 +145,7 @@ const Dashboard = () => {
         }}
       >
         <CircularProgress color="secondary" size={80} thickness={5} />
-        <Typography variant="h5" sx={{ mt: 3, fontWeight: "bold" }}>
+        <Typography variant="h3" sx={{ mt: 3, fontWeight: "bold" }}>
           Loading Dashboard...
         </Typography>
       </Box>
@@ -194,14 +155,7 @@ const Dashboard = () => {
   return (
     <Box sx={{ height: "100vh", overflow: "hidden", p: isMobile ? 2 : 3, position: "relative" }}>
       {/* HEADER */}
-      <Box
-        display="flex"
-        flexDirection={isMobile ? "column" : "row"}
-        justifyContent="space-between"
-        alignItems={isMobile ? "flex-start" : "center"}
-        mb={isMobile ? 3 : 2}
-        gap={2}
-      >
+      <Box display="flex" flexDirection={isMobile ? "column" : "row"} justifyContent="space-between" alignItems={isMobile ? "flex-start" : "center"} mb={isMobile ? 3 : 2} gap={2}>
         <Header title="DASHBOARD" subtitle="REGIN ESTATE" />
         <Button
           sx={{
@@ -212,17 +166,6 @@ const Dashboard = () => {
             padding: isMobile ? "8px 16px" : "10px 20px",
             width: isMobile ? "100%" : "auto",
           }}
-          onClick={() => {
-            const profile = JSON.parse(localStorage.getItem("profileData"));
-            if (profile?.resume?.data) {
-              const link = document.createElement("a");
-              link.href = profile.resume.data;
-              link.download = profile.resume.name || "resume.pdf";
-              link.click();
-            } else {
-              alert("❌ No resume uploaded! Please upload one in your profile first.");
-            }
-          }}
         >
           <DownloadOutlinedIcon sx={{ mr: "10px" }} />
           Download Resume
@@ -230,12 +173,7 @@ const Dashboard = () => {
       </Box>
 
       {/* GRID & CHARTS */}
-      <Box
-        display="grid"
-        gridTemplateColumns={isMobile ? "repeat(1, 1fr)" : isTablet ? "repeat(6, 1fr)" : "repeat(12, 1fr)"}
-        gridAutoRows="140px"
-        gap="20px"
-      >
+      <Box display="grid" gridTemplateColumns={isMobile ? "repeat(1, 1fr)" : isTablet ? "repeat(6, 1fr)" : "repeat(12, 1fr)"} gridAutoRows="140px" gap="20px">
         {/* Stat Boxes */}
         <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
@@ -246,7 +184,6 @@ const Dashboard = () => {
             icon={<EmailIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
           />
         </Box>
-
         <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
             title={`PK ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -256,7 +193,6 @@ const Dashboard = () => {
             icon={<PointOfSaleIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
           />
         </Box>
-
         <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
             title="32,441"
@@ -266,7 +202,6 @@ const Dashboard = () => {
             icon={<PersonAddIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
           />
         </Box>
-
         <Box gridColumn={isMobile ? "span 1" : "span 3"} backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
           <StatBox
             title="1,325,134"
@@ -279,7 +214,7 @@ const Dashboard = () => {
 
         {/* Revenue Chart */}
         <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 6" : "span 8"} gridRow="span 2" backgroundColor={colors.primary[400]}>
-          <Box mt="10px" p="10px 20px" display="flex" justifyContent="space-between" alignItems="center">
+          <Box mt="0px" m="-20px" p="0px 30px" display="flex" justifyContent="space-between" alignItems="center">
             <Box>
               <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
                 Revenue Generated
@@ -297,7 +232,8 @@ const Dashboard = () => {
           </Box>
         </Box>
 
-        {/* Recent Users */}
+
+             {/* Recent Users */}
         <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 6" : "span 4"} gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
           <Box display="flex" justifyContent="space-between" alignItems="center" borderBottom={`4px solid ${colors.primary[500]}`} p="15px">
             <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
@@ -376,15 +312,42 @@ const Dashboard = () => {
             ))
           )}
         </Box>
-      </Box>
+
+          {/* Bar Chart */}
+          <Box gridColumn={isMobile ?  "span 1" : isTablet ? "span 3" : "span 4"}  gridRow="span 2" ackgroundColor={colors.primary[400]}>
+            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}  m="20px" p="30px">
+              Sales Overview
+            </Typography>
+            <Box height="250px" m="-40px">
+              <BarChart isDashboard={true} />
+            </Box>
+          </Box>
+
+          {/* Pie Chart */}
+          <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2" >
+            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}m="20px" p="40px">
+              User Distribution
+            </Typography>
+            <Box height="190px" m="-40px">
+              <PieChart isDashboard={true} />
+            </Box>
+          </Box>
+
+          {/* Geography Chart */}
+          <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2">
+            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}m="20px" p="30px">
+              Traffic by Region
+            </Typography>
+            <Box height="250px" m="-40px">
+              <GeographyChart isDashboard={true} />
+            </Box>
+          </Box>
+
+    
+        </Box>
 
       {/* Success Snackbar */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
+      <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
         <Alert onClose={handleCloseSnackbar} severity="success" variant="filled" sx={{ width: "100%" }}>
           ✅ Admin password successful!
         </Alert>

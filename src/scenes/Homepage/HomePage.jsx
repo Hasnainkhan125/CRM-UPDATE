@@ -7,7 +7,6 @@ import {
   Paper,
   AppBar,
   Toolbar,
-  Link,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -1578,8 +1577,7 @@ useEffect(() => {
 </motion.div>
 </Box>
 
-
-{/* 🔹 Modern Footer Section */}
+{/* 🔹 Modern Footer Section (Updated to match screenshot design) */}
 <motion.div
   initial={{ opacity: 0, y: 60 }}
   whileInView={{ opacity: 1, y: 0 }}
@@ -1588,202 +1586,270 @@ useEffect(() => {
 >
   <Box
     sx={{
-      py: 12,
-      px: { xs: 4, md: 10 },
-      background:
-        themeMode === "dark"
-          ? "linear-gradient(180deg, #050012 0%, #0d0026 100%)"
-          : "#f9fafb",
-      borderTop:
-        themeMode === "dark"
-          ? "1px solid rgba(255,255,255,0.1)"
-          : "1px solid #e5e7eb",
-      color: themeMode === "dark" ? "#cbd5e1" : "#374151",
+      py: 10,
+      px: { xs: 3, md: 10 },
+      background: "#000",
+      color: "#fff",
+      borderTop: "1px solid #111",
       transition: "all 0.4s ease-in-out",
     }}
   >
     <Grid container spacing={8}>
-      {/* 🔹 Brand & Description */}
+      {/* 🔹 Left Promo Section */}
       <Grid item xs={12} md={4}>
-        <Typography
-          variant="h4"
+        <Box
           sx={{
-            fontWeight: 800,
-            background:
-              "linear-gradient(90deg, #8b5cf6, #ec4899, #8b5cf6, #ec4899)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            mb: 2,
+            background: "#0a0a0a",
+            borderRadius: 4,
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
           }}
         >
-          CRM Nexus
-        </Typography>
-        <Typography sx={{ lineHeight: 1.8, mb: 4 }}>
-          AI-driven analytics, automation, and engagement tools to help your business scale faster and smarter.
-        </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "#bbb", mb: 1, fontWeight: 500 }}
+          >
+            Download the free CRM Nexus App
+          </Typography>
 
-        {/* Social Icons */}
-        <Box sx={{ display: "flex", gap: 2, mb: 4, flexWrap: "wrap" }}>
-          {[
-            { icon: "https://cdn-icons-png.flaticon.com/512/25/25231.png", link: "#", label: "GitHub" },
-            { icon: "https://cdn-icons-png.flaticon.com/512/733/733579.png", link: "#", label: "Twitter" },
-            { icon: "https://cdn-icons-png.flaticon.com/512/733/733558.png", link: "#", label: "Instagram" },
-            { icon: "https://cdn-icons-png.flaticon.com/512/174/174857.png", link: "#", label: "LinkedIn" },
-          ].map((social, i) => (
-            <Box
-              key={i}
-              component="a"
-              href={social.link}
-              target="_blank"
-              rel="noopener noreferrer"
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 800,
+              mb: 2,
+              textAlign: "center",
+              lineHeight: 1.2,
+            }}
+          >
+            Total care. <br /> Totally different.
+          </Typography>
+
+          {/* QR + Download Box */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 2,
+            }}
+          >
+            <Button
+              variant="contained"
+              disableElevation
               sx={{
-                width: 44,
-                height: 44,
-                borderRadius: "50%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                background: themeMode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-                transition: "0.3s",
-                "&:hover": {
-                  transform: "scale(1.15)",
-                  background: themeMode === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)",
-                },
+                background: "#1a1a1a",
+                color: "#fff",
+                borderRadius: 3,
+                textTransform: "none",
+                px: 3,
+                py: 1.2,
+                fontWeight: 600,
+                fontSize: "0.9rem",
+                "&:hover": { background: "#222" },
               }}
             >
-              <Box
-                component="img"
-                src={social.icon}
-                alt={social.label}
-                sx={{ width: 24, height: 24, filter: themeMode === "dark" ? "brightness(0) invert(1)" : "brightness(0)" }}
-              />
-            </Box>
+              Download the app
+            </Button>
+            <Box
+              component="img"
+              src="/assets/loading-logo.png"
+              alt="QR Code"
+              sx={{
+                width: 110,
+                height: 110,
+                borderRadius: 2,
+                mt: 1,
+              }}
+            />
+          </Box>
+
+          <Typography
+            variant="caption"
+            sx={{ color: "#888", mb: 2, fontSize: "0.9rem" }}
+          >
+            For iOS and Android
+          </Typography>
+
+          {/* Phone image */}
+          <Box
+            component="img"
+            src="../../assets/admin.png"
+            alt="App Preview"
+            sx={{
+              width: "100%",
+              maxWidth: 250,
+              height: 300,
+              borderRadius: 3,
+              mt: 3,
+            }}
+          />
+        </Box>
+      </Grid>
+
+      {/* 🔹 Link Columns Section */}
+      <Grid item xs={12} md={8}>
+        <Grid container spacing={6}>
+          <Grid item xs={6} sm={3}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
+              Learn
+            </Typography>
+            {[
+              "Weight Loss",
+              "Sexual Health",
+              "Testosterone",
+              "Hair Regrowth",
+              "Mental Health",
+              "Drug Comparisons",
+              "About the Company",
+            ].map((item) => (
+              <Typography
+                key={item}
+                sx={{
+                  mb: 1,
+                  color: "#bbb",
+                  fontSize: "0.95rem",
+                  "&:hover": { color: "#fff", cursor: "pointer" },
+                }}
+              >
+                {item}
+              </Typography>
+            ))}
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
+              Popular
+            </Typography>
+            {[
+              "Weight Loss Kits",
+              "GLP-1 Injections",
+              "Sildenafil",
+              "Cialis®",
+              "Minoxidil Solution",
+              "Finasteride Pills",
+              "Sertraline",
+            ].map((item) => (
+              <Typography
+                key={item}
+                sx={{
+                  mb: 1,
+                  color: "#bbb",
+                  fontSize: "0.95rem",
+                  "&:hover": { color: "#fff", cursor: "pointer" },
+                }}
+              >
+                {item}
+              </Typography>
+            ))}
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
+              CRM Nexus
+            </Typography>
+            {[
+              "About Us",
+              "How It Works",
+              "Quality & Safety",
+              "FAQs",
+              "Investors",
+            ].map((item) => (
+              <Typography
+                key={item}
+                sx={{
+                  mb: 1,
+                  color: "#bbb",
+                  fontSize: "0.95rem",
+                  "&:hover": { color: "#fff", cursor: "pointer" },
+                }}
+              >
+                {item}
+              </Typography>
+            ))}
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
+              Connect
+            </Typography>
+            {["Customer Help Center", "Press Center"].map((item) => (
+              <Typography
+                key={item}
+                sx={{
+                  mb: 1,
+                  color: "#bbb",
+                  fontSize: "0.95rem",
+                  "&:hover": { color: "#fff", cursor: "pointer" },
+                }}
+              >
+                {item}
+              </Typography>
+            ))}
+          </Grid>
+        </Grid>
+
+        {/* Social Icons */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mt: 6,
+            alignItems: "center",
+          }}
+        >
+          {[
+            "https://cdn-icons-png.flaticon.com/512/733/733579.png",
+            "https://cdn-icons-png.flaticon.com/512/2111/2111463.png",
+            "https://cdn-icons-png.flaticon.com/512/733/733558.png",
+            "https://cdn-icons-png.flaticon.com/512/3046/3046121.png",
+          ].map((icon, i) => (
+            <Box
+              key={i}
+              component="img"
+              src={icon}
+              alt="social"
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "#1a1a1a",
+                p: 1,
+                transition: "0.3s",
+                "&:hover": { transform: "scale(1.2)", background: "#333" },
+              }}
+            />
           ))}
         </Box>
 
-        {/* App Store Buttons */}
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-          <Box component="a" href="#" target="_blank" sx={{ "&:hover": { transform: "scale(1.05)" } }}>
-            <Box component="img" src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" sx={{ width: 160, height: "auto" }} />
-          </Box>
-          <Box component="a" href="#" target="_blank" sx={{ "&:hover": { transform: "scale(1.05)" } }}>
-            <Box component="img" src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" sx={{ width: 180, height: "auto" }} />
-          </Box>
+        {/* Bottom Legal Links */}
+        <Box
+          sx={{
+            mt: 6,
+            borderTop: "1px solid #1c1c1c",
+            pt: 4,
+            textAlign: "center",
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ color: "#888", mb: 1, fontSize: "0.9rem" }}
+          >
+            Terms & conditions &nbsp; | &nbsp; Privacy policy &nbsp; | &nbsp;
+            Sitemap
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "#666", fontSize: "0.9rem" }}
+          >
+            &copy; {new Date().getFullYear()} CRM Nexus. All rights reserved.
+          </Typography>
         </Box>
       </Grid>
-
-      {/* 🔹 Quick Links */}
-      <Grid item xs={12} sm={6} md={2}>
-        <Typography variant="subtitle1" sx={{ mb: 2, color: "#a78bfa", fontWeight: 600 }}>Company</Typography>
-        {["About Us", "Careers", "Blog", "Press", "Partners"].map((item) => (
-          <Link key={item} href="#" underline="none" sx={{
-            display: "block",
-            mb: 1,
-            color: themeMode === "dark" ? "#cbd5e1" : "#374151",
-            fontSize: "0.95rem",
-            "&:hover": { color: "#a78bfa" }
-          }}>
-            {item}
-          </Link>
-        ))}
-      </Grid>
-
-      <Grid item xs={12} sm={6} md={2}>
-        <Typography variant="subtitle1" sx={{ mb: 2, color: "#a78bfa", fontWeight: 600 }}>Resources</Typography>
-        {["Documentation", "API Reference", "Community", "Pricing", "FAQs"].map((item) => (
-          <Link key={item} href="#" underline="none" sx={{
-            display: "block",
-            mb: 1,
-            color: themeMode === "dark" ? "#cbd5e1" : "#374151",
-            fontSize: "0.95rem",
-            "&:hover": { color: "#a78bfa" }
-          }}>
-            {item}
-          </Link>
-        ))}
-      </Grid>
-
-      {/* 🔹 Contact & Newsletter */}
-      <Grid item xs={12} md={4}>
-        <Typography variant="subtitle1" sx={{ mb: 2, color: "#a78bfa", fontWeight: 600 }}>Contact & Support</Typography>
-        <Typography sx={{ lineHeight: 1.8, mb: 2, color: themeMode === "dark" ? "#d1d5db" : "#4b5563" }}>
-          support@crmnexus.com <br />
-          +1 (800) 555-1234 <br />
-          500 Tech Avenue, Silicon Valley, CA
-        </Typography>
-        <Button variant="contained" sx={{
-          background: "#a78bfa",
-          color: "#fff",
-          borderRadius: 2,
-          textTransform: "none",
-          fontWeight: 600,
-          "&:hover": { background: "#8b5cf6" }
-        }}>
-          Contact Support
-        </Button>
-
-        {/* Newsletter Signup */}
-        <Box sx={{ mt: 6 }}>
-  <Typography
-    variant="h5"
-    sx={{
-      mb: 3,
-      fontWeight: 700,
-      fontSize: { xs: "1.25rem", md: "1.5rem" },
-      background: "linear-gradient(90deg, #8b5cf6, #ec4899)",
-      WebkitBackgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-    }}
-  >
-    Join Our Newsletter
-  </Typography>
-  <Typography
-    sx={{
-      mb: 3,
-      fontSize: "1rem",
-      color: themeMode === "dark" ? "#cbd5e1" : "#4b5563",
-    }}
-  >
-    Subscribe to get the latest updates, tips, and exclusive offers directly to your inbox.
-  </Typography>
-  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-    <input
-      type="email"
-      placeholder="Enter your email"
-      style={{
-        flex: 1,
-        padding: "15px 16px",
-        borderRadius: "8px",
-        border: themeMode === "dark" ? "1px solid #555" : "1px solid #ccc",
-        outline: "none",
-        fontSize: "1rem",
-      }}
-    />
-    <Button
-      variant="contained"
-      sx={{
-        padding: "15px 24px",
-        background: "#ec4899",
-        color: "#fff",
-        borderRadius: 2,
-        fontWeight: 600,
-        textTransform: "none",
-        "&:hover": { background: "#db9f27ff" },
-      }}
-    >
-      Subscribe
-    </Button>
-  </Box>
-</Box>
-</Grid>
-</Grid>
-
-    {/* 🔹 Footer Bottom */}
-    <Box sx={{ mt: 10, borderTop: themeMode === "dark" ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e5e7eb", pt: 6, textAlign: "center" }}>
-      <Typography variant="body2" sx={{ color: themeMode === "dark" ? "#94a3b8" : "#6b7280" }}>
-        &copy; {new Date().getFullYear()} CRM Nexus. All rights reserved.
-      </Typography>
-    </Box>
+    </Grid>
   </Box>
 </motion.div>
 

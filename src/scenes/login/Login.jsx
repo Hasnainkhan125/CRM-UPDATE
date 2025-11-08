@@ -16,6 +16,13 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  getAuth,
+} from "firebase/auth";
+import { initializeApp } from "firebase/app";
 
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -26,11 +33,23 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 
+// 🔥 Firebase Config
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_FIREBASE_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 const TEAM_STORAGE_KEY = "team-members";
 
 const Login = () => {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -40,9 +59,8 @@ const Login = () => {
   const [showLoader, setShowLoader] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled] = useState(true);
 
-  // 🗣️ Voice feedback
   const speak = (text) => {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel();
@@ -53,13 +71,47 @@ const Login = () => {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Loader animation
   useEffect(() => {
-    const timer = setTimeout(() => setShowLoader(false), 3000);
+    const timer = setTimeout(() => setShowLoader(false), 4000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Load admin + users
+  // Voice Recognition
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript
+        .toLowerCase()
+        .trim();
+      if (transcript.includes("hello")) {
+        speak("Hello detected.");
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem(
+          "currentUser",
+          JSON.stringify({
+            id: 1,
+            name: "Admin User",
+            email: "admin@gmail.com",
+            access: "admin",
+          })
+        );
+        navigate("/admin-dashboard");
+      }
+    };
+
+    recognition.onerror = (err) => console.error("Voice error:", err);
+    recognition.start();
+
+    return () => recognition.stop();
+  }, []);
+
   useEffect(() => {
     let savedUsers = JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY)) || [];
     const adminExists = savedUsers.some((u) => u.email === "admin@gmail.com");
@@ -68,7 +120,6 @@ const Login = () => {
       savedUsers.push({
         id: savedUsers.length ? savedUsers[savedUsers.length - 1].id + 1 : 1,
         name: "Admin User",
-        age: 30,
         email: "admin@gmail.com",
         password: "admin123",
         access: "admin",
@@ -78,23 +129,15 @@ const Login = () => {
 
     setUsers(savedUsers);
     const rememberedData = JSON.parse(localStorage.getItem("rememberedUser"));
-    const savedVoice = localStorage.getItem("voiceEnabled");
     if (rememberedData) {
       setFormData(rememberedData);
       setRememberMe(true);
     }
-    if (savedVoice !== null) {
-      setVoiceEnabled(savedVoice === "true");
-    }
   }, []);
 
-  // Handle input
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ✅ Login logic
   const handleLogin = () => {
     const { email, password } = formData;
 
@@ -112,12 +155,8 @@ const Login = () => {
     if (foundUser) {
       setLoading(true);
       speak("Login successful!");
-
-      if (rememberMe) {
+      if (rememberMe)
         localStorage.setItem("rememberedUser", JSON.stringify(formData));
-      } else {
-        localStorage.removeItem("rememberedUser");
-      }
 
       setTimeout(() => {
         localStorage.setItem("loggedIn", "true");
@@ -132,94 +171,155 @@ const Login = () => {
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-    setSuccessSnackbar(false);
-    setRememberError(false);
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-// 🎤 Voice login
-const startVoiceLogin = () => {
-  // Check browser support
-  if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-    speak("Sorry, your browser does not support voice recognition.");
-    alert("Voice recognition not supported in this browser.");
-    return;
-  }
-
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-
-  recognition.lang = "en-US";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  speak("Listening... ");
-  recognition.start();
-
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript.toLowerCase().trim();
-    console.log("Voice input:", transcript);
-
-    // Check for allowed commands
-    if (transcript.includes("login") || transcript.includes("hello")) {
-      speak("Voice command recognized. Logging you in...");
-      handleLogin(); // Your login function
-    } else {
-      speak("Command not recognized.");
+  // Google Auth
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      speak(`Welcome ${user.displayName}`);
+      setSuccessSnackbar(true);
+      navigate("/user-dashboard");
+    } catch {
+      speak("Google login failed");
+      setOpenSnackbar(true);
     }
   };
 
-  recognition.onerror = (event) => {
-    console.error("Speech recognition error:", event.error);
-    speak("Voice recognition error occurred.");
+
+  // GitHub Auth
+  const handleGitHubLogin = async () => {
+    const provider = new GithubAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      speak(`Welcome ${user.displayName}`);
+      setSuccessSnackbar(true);
+      navigate("/user-dashboard");
+    } catch {
+      speak("GitHub login failed");
+      setOpenSnackbar(true);
+    }
   };
-
-  recognition.onend = () => {
-    // Optional: restart recognition if you want continuous listening
-    // recognition.start();
-  };
-};
-
-
-  // Loader UI
-  if (showLoader) {
-    return (
+  //load screen desingn
+  
+if (showLoader) {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "#000000",
+        gap: 4,
+      }}
+    >
+      {/* iOS / macOS Style Spinner */}
       <Box
         sx={{
-          minHeight: "100vh",
+          position: "relative",
+          width: 80,
+          height: 80,
           display: "flex",
-          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "radial-gradient(circle at top left, #ffffffff, #ffffffff)",
         }}
       >
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-          style={{
-            width: 70,
-            height: 70,
-            borderRadius: "50%",
-            border: "9px solid rgba(255,255,255,0.1)",
-            borderTop: "9px solid #0080ffff",
-          }}
-        />
-        <motion.h2 animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} style={{ fontSize: "1.5rem", color: "#4b4b4bff", textAlign: "center" }}>
-          Loading, please wait...
-        </motion.h2>
-
+        {[...Array(12)].map((_, i) => (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0.2 }}
+            animate={{ opacity: [1, 0.2] }}
+            transition={{
+              repeat: Infinity,
+              duration: 1.2,
+              delay: i * 0.1,
+            }}
+            style={{
+              position: "absolute",
+              top: "4px",
+              left: "50%",
+              width: "8px",
+              height: "18px",
+              background: "linear-gradient(180deg, #ffffff, #b0b0b0)",
+              borderRadius: "10px",
+              transformOrigin: "center 36px",
+              transform: `rotate(${i * 30}deg)`,
+              boxShadow: "0 0 6px rgba(255, 255, 255, 0.6)",
+            }}
+          />
+        ))}
       </Box>
-    );
-  }
 
-  // Main UI
+{/* Loading Text */}
+<motion.div
+  animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }}
+  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+>
+  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+    <Typography
+      sx={{
+        fontSize: "1.4rem",
+        fontWeight: 600,
+        color: "#f5f5f5",
+        letterSpacing: "0.5px",
+        fontFamily: "SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      Loading
+    </Typography>
+    {[...Array(3)].map((_, i) => (
+      <motion.span
+        key={i}
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{
+          repeat: Infinity,
+          duration: 1.2,
+          delay: i * 0.3,
+          ease: "easeInOut",
+        }}
+        style={{
+          fontSize: "1.4rem",
+          fontWeight: 600,
+          color: "#f5f5f5",
+        }}
+      >
+        .
+      </motion.span>
+    ))}
+  </Box>
+</motion.div>
+
+
+      {/* Subtext */}
+      <motion.div
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ repeat: Infinity, duration: 2.4 }}
+      >
+        <Typography
+          sx={{
+            fontSize: "0.95rem",
+            color: "#888",
+            mt: 2,
+            fontStyle: "italic",
+            fontFamily: "SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
+          }}
+        >
+          Preparing your Sign form...
+        </Typography>
+      </motion.div>
+    </Box>
+  );
+}
+
+
+
   return (
     <Box
       sx={{
@@ -227,244 +327,279 @@ const startVoiceLogin = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #ffffffff, #ffffffff)",
-        p: 3,
+        backgroundColor: "#0b0a0aff",
       }}
     >
-      <Fade in={true} timeout={1000}>
+      <Fade in timeout={800}>
         <Paper
-          elevation={24}
+          elevation={12}
           sx={{
-            p: 8 ,
-            height: '700px',
-            borderRadius: 6,
-            width: "720px",
-            maxWidth: "90%",
-            background: "rgba(255, 255, 255, 1)",
-            color: "#000000ff",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-            textAlign: "center",
-            position: "relative",
+            width: { xs: "90%", sm: "90%", md: "120vh" },
+            height: { xs: "auto", md: "650px" },
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            borderRadius: "20px",
+            overflow: "hidden",
           }}
         >
-          <Typography variant="h2" fontWeight="bold" mb={4}>
-            SIGN IN 👋
-          </Typography>
+          {/* Left Section */}
+          <Box
+            sx={{
+              flex: 1,
+              backgroundColor: "#1c1c1c",
+              p: { xs: 4, md: 6 },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <Typography
+              variant="h2"
+              fontWeight="bold"
+              textAlign="center"
+              mb={5}
+              color="#ffffff"
+            >
+              LOGIN
+            </Typography>
 
-          {/* Email Field with Animated Underline */}
-          <Box sx={{ position: "relative" }}>
+            {/* Email */}
             <TextField
-              label="Email"
+              label="Email Address"
               name="email"
-              fullWidth
               variant="standard"
+              fullWidth
               value={formData.email}
               onChange={handleChange}
-              disabled={loading}
+              InputLabelProps={{ style: { color: "#ffffff" } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <EmailOutlinedIcon sx={{ color: "#ffb300" }} />
+                    <EmailOutlinedIcon sx={{ color: "#2196f3" }} />
                   </InputAdornment>
                 ),
+                style: { color: "#ffffff" },
               }}
               sx={{
-                "& .MuiInputBase-input": { color: "#000000ff" },
-                "& .MuiInputLabel-root": { color: "#000000ff" },
+                mb: 3,
+                "& .MuiInput-underline:before": { borderBottomColor: "#fff" },
+                "& .MuiInput-underline:after": { borderBottomColor: "#2196f3" },
+                "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+                  borderBottomColor: "#fff",
+                },
               }}
             />
-            <motion.div
-              layoutId="underline"
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 0.5 }}
-              style={{
-                height: 2,
-                background: "linear-gradient(90deg, #ffaa00ff, #ffaa00ff)",
-                marginTop: 0,
-              }}
-            />
-          </Box>
 
-          {/* Password Field with Animated Underline */}
-          <Box sx={{ mt: 3, position: "relative" }}>
+            {/* Password */}
             <TextField
               label="Password"
               name="password"
               type={showPassword ? "text" : "password"}
-              fullWidth
               variant="standard"
+              fullWidth
               value={formData.password}
               onChange={handleChange}
-              disabled={loading}
+              InputLabelProps={{ style: { color: "#ffffff" } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LockOutlinedIcon sx={{ color: "#ffb300" }} />
+                    <LockOutlinedIcon sx={{ color: "#2196f3" }} />
                   </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={togglePasswordVisibility} sx={{ color: "#fff" }}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? (
+                        <VisibilityOff sx={{ color: "#2196f3" }} />
+                      ) : (
+                        <Visibility sx={{ color: "#2196f3" }} />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
+                style: { color: "#ffffff" },
               }}
               sx={{
-                "& .MuiInputBase-input": { color: "#000000ff" },
-                "& .MuiInputLabel-root": { color: "#000000ff" },
+                mb: 2,
+                "& .MuiInput-underline:before": { borderBottomColor: "#fff" },
+                "& .MuiInput-underline:after": { borderBottomColor: "#2196f3" },
+                "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+                  borderBottomColor: "#fff",
+                },
               }}
             />
-            <motion.div
-              layoutId="underline2"
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 0.5 }}
-              style={{
-                height: 2,
-                background: "linear-gradient(90deg, #ffaa00ff, #ffaa00ff)",
-                marginTop: 0,
-              }}
-            />
-          </Box>
 
-          {/* Remember Me */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  sx={{
-                    color: "#ffb300",
-                    "&.Mui-checked": { color: "#ffb300" },
-                  }}
-                />
-              }
-              label={<Typography sx={{ color: "#000000ff" }}>Remember Me</Typography>}
-            />
-            <Typography
+            {/* Remember Me + Forgot */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    sx={{
+                      color: "#2196f3",
+                      "&.Mui-checked": { color: "#2196f3" },
+                    }}
+                  />
+                }
+                label={<Typography sx={{ color: "#ffffff" }}>Remember me</Typography>}
+              />
+              <Typography
+                sx={{
+                  color: "#2196f3",
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+                onClick={() => navigate("/forgot-password")}
+              >
+                Forgot password?
+              </Typography>
+            </Box>
+
+            {/* Login Button */}
+            <Button
+              fullWidth
+              disabled={loading}
+              onClick={handleLogin}
               sx={{
-                color: "#000000ff",
-                cursor: "pointer",
-                "&:hover": { color: "#181818ff", textDecoration: "underline" },
+                py: 1.5,
+                borderRadius: "8px",
+                background: "linear-gradient(90deg,#7c3aed 0%,#a78bfa 100%)",
+                color: "#fff",
+                fontWeight: "bold",
+                "&:hover": { background: "linear-gradient(90deg,#a78bfa 0%,#7c3aed 100%)" },
               }}
-              onClick={() => navigate("/forgot-password")}
             >
-              Forgot Password?
+              {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Login"}
+            </Button>
+
+            <Typography sx={{ mt: 4, mb: 2, textAlign: "center", color: "#bbbbbb" }}>
+              Or continue with
+            </Typography>
+
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 5 }}>
+              <GoogleIcon
+                sx={{ color: "#DB4437", fontSize: 42, cursor: "pointer" }}
+                onClick={handleGoogleLogin}
+              />
+              <GitHubIcon
+                sx={{ color: "#24292F", fontSize: 42, cursor: "pointer" }}
+                onClick={handleGitHubLogin}
+              />
+              <FacebookIcon sx={{ color: "#1877F2", fontSize: 42, cursor: "pointer" }} />
+            </Box>
+
+            <Typography textAlign={"center"} sx={{ mt: 4, color: "#ffffff" }}>
+              Don’t have an account?{" "}
+              <span
+                style={{ color: "#2196f3", cursor: "pointer" }}
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </span>
             </Typography>
           </Box>
 
-          {/* Sign In Button */}
-          <Button
-            fullWidth
-            disabled={loading}
-            onClick={handleLogin}
+          {/* Right Section */}
+          <Box
             sx={{
-              py: 1.6,
-              borderRadius: "12px",
-              fontWeight: "bold",
-              textTransform: "none",
-              fontSize: "1rem",
-              background: "#ffb300",
-              color: "#000",
-              "&:hover": { background: "#ffc107" },
+              flex: 1,
+              display: { xs: "none", md: "block" },
+              position: "relative",
+              backgroundImage: `url("/assets/auth/auth2_cleanup.png")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              overflow: "hidden",
             }}
           >
-            {loading ? <CircularProgress size={26} sx={{ color: "#000" }} /> : "Sign In"}
-          </Button>
-
-          {/* Social Login */}
-          <Typography sx={{ mt: 4, mb: 2, color: "#fff" }}>
-            Or continue with
-          </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-            <Button
-              startIcon={<GoogleIcon />}
+            <Box
               sx={{
-                background: "#DB4437",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background:
+                  "linear-gradient(135deg, rgba(25, 77, 210, 0.85) 0%, rgba(0, 0, 0, 0.6) 100%)",
+                backdropFilter: "blur(5px)",
+              }}
+            />
+            <Box
+              component={motion.div}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2 }}
+              sx={{
+                position: "relative",
+                zIndex: 2,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
                 color: "#fff",
-                borderRadius: "10px",
-                width: 110,
-                "&:hover": { background: "#c33d2e" },
+                p: 5,
               }}
             >
-              Google
-            </Button>
-            <Button
-              startIcon={<GitHubIcon />}
-              sx={{
-                background: "#24292F",
-                color: "#fff",
-                borderRadius: "10px",
-                width: 110,
-                "&:hover": { background: "#1b1f23" },
-              }}
-            >
-              GitHub
-            </Button>
-            <Button
-              startIcon={<FacebookIcon />}
-              sx={{
-                background: "#1877F2",
-                color: "#fff",
-                borderRadius: "10px",
-                width: 110,
-                "&:hover": { background: "#145dbf" },
-              }}
-            >
-              Facebook
-            </Button>
+              <motion.img
+                src="/assets/loading-logo.png"
+                alt="PAK CRM Logo"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 1.2 }}
+                style={{
+                  width: "120px",
+                  borderRadius: "16px",
+                  marginBottom: "25px",
+                  boxShadow: "0 0 25px rgba(255,255,255,0.4)",
+                  padding: "6px",
+                }}
+              />
+              <Typography variant="h3" fontWeight={700}>
+                Welcome to <span style={{ color: "#90caf9" }}>PAK CRM</span>
+              </Typography>
+            </Box>
           </Box>
-
-          {/* Register */}
-          <Button
-            onClick={() => {
-              speak("Opening registration page");
-              navigate("/register");
-            }}
-            sx={{
-              mt: 3,
-              textTransform: "none",
-              color: "#000000ff",
-              "&:hover": { color: "#000000ff", textDecoration: "underline" },
-            }}
-          >
-            Don’t have an account? Create one
-          </Button>
         </Paper>
       </Fade>
 
-      {/* 🎤 Floating Voice Login */}
+      {/* Voice Login Button */}
       <IconButton
-        onClick={startVoiceLogin}
+        onClick={() => speak("Voice Enable")}
         sx={{
           position: "fixed",
           right: 20,
           bottom: 40,
-          color: "#ffb300",
-          backgroundColor: "rgba(255,255,255,0.1)",
-          "&:hover": {
-            backgroundColor: "rgba(255,255,255,0.2)",
-            color: "#fff",
-          },
-          zIndex: 9999,
+          color: "#fff",
+          backgroundColor: "#2196f3",
+          "&:hover": { backgroundColor: "#1976d2" },
+          zIndex: 1000,
         }}
       >
         <VolumeUpIcon fontSize="large" />
       </IconButton>
 
-      {/* Alerts */}
-      <Snackbar open={openSnackbar} autoHideDuration={2500} onClose={handleCloseSnackbar}>
-        <Alert severity="error">Invalid email or password!</Alert>
+      {/* Snackbars */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={2500}
+        onClose={() => setOpenSnackbar(false)}
+      >
+        <Alert severity="error">Login failed. Try again!</Alert>
       </Snackbar>
-
-      <Snackbar open={rememberError} autoHideDuration={2500} onClose={handleCloseSnackbar}>
+      <Snackbar
+        open={rememberError}
+        autoHideDuration={2500}
+        onClose={() => setRememberError(false)}
+      >
         <Alert severity="warning">Please check "Remember Me" before login!</Alert>
       </Snackbar>
-
-      <Snackbar open={successSnackbar} autoHideDuration={1500} onClose={handleCloseSnackbar}>
+      <Snackbar
+        open={successSnackbar}
+        autoHideDuration={1500}
+        onClose={() => setSuccessSnackbar(false)}
+      >
         <Alert severity="success">Login successful!</Alert>
       </Snackbar>
     </Box>

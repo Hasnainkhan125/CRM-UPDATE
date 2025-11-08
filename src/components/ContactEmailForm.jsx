@@ -76,9 +76,9 @@ const ContactEmailForm = () => {
     position: "fixed",
     bottom: 100,
     right: 10,
-    height: 400,
+    height: 500,
     width: 400,
-    p: 5,
+    p: 4,
     borderRadius: 3,
     bgcolor: theme.palette.mode === "dark" ? "#0d001cff" : "white", // dark mode support
     border: "1px solid #ffffffff", // added 1px yellow border

@@ -4,96 +4,117 @@ import {
   Button,
   Grid,
   IconButton,
-  Paper,
   TextField,
   Typography,
-  MenuItem,
-  Select,
   Menu,
+  MenuItem,
   ListItemText,
-  CircularProgress,
+  Badge,
+  Paper,
+  Modal,
+  Divider,
+  List,
+  ListItem,
+  ListItemAvatar,
+  Avatar,
+  ListItemText as MuiListItemText,
 } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
-import Chart from "react-apexcharts";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useNavigate } from "react-router-dom";
 
-const DashboardPro = () => {
-  const [filter, setFilter] = useState("Monthly");
+const UserDashboardShop = () => {
+  const [searchValue, setSearchValue] = useState("");
   const [anchorElSettings, setAnchorElSettings] = useState(null);
   const [anchorElNotif, setAnchorElNotif] = useState(null);
   const [anchorElInbox, setAnchorElInbox] = useState(null);
-  const [searchValue, setSearchValue] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const navigate = useNavigate();
-
-  const salesData = {
-    Weekly: [500, 700, 800, 600, 1000, 900, 1200],
-    Monthly: [1200, 1500, 1100, 1800, 2300, 1900, 2600],
-    Yearly: [15000, 17000, 21000, 24000, 26000, 28000, 30000],
-  };
-  const salesCategories = {
-    Weekly: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    Monthly: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
-    Yearly: ["2019", "2020", "2021", "2022", "2023", "2024", "2025"],
-  };
-  const salesSeries = [{ name: "Total Sales", data: salesData[filter] }];
-  const salesOptions = {
-    chart: { type: "area", toolbar: { show: false }, animations: { enabled: true } },
-    stroke: { curve: "smooth", width: 3, colors: ["#7c3aed"] },
-    colors: ["#7c3aed"],
-    xaxis: { categories: salesCategories[filter], labels: { style: { colors: "#a3a3a3" } } },
-    grid: { borderColor: "rgba(255,255,255,0.05)" },
-    tooltip: { theme: "dark", y: { formatter: (val) => `$${val.toLocaleString()}` } },
-    fill: { type: "gradient", gradient: { opacityFrom: 0.6, opacityTo: 0.2, stops: [0, 100] } },
-  };
-
-  const columnSeries = [
-    { name: "2024", data: [40, 55, 45, 70, 60, 80, 90] },
-    { name: "2025", data: [50, 65, 55, 85, 75, 95, 110] },
-  ];
-  const columnOptions = {
-    chart: { toolbar: { show: false } },
-    xaxis: {
-      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      labels: { style: { colors: "#a3a3a3", fontSize: "12px" } },
-    },
-    colors: ["#7c3aed", "#a78bfa"],
-    legend: { position: "top", labels: { colors: "#cbd5e1" } },
-    grid: { borderColor: "rgba(255,255,255,0.08)" },
-    plotOptions: { bar: { borderRadius: 6, columnWidth: "45%" } },
-    tooltip: { theme: "dark" },
-  };
-
-  const users = [
-    { name: "John Carter", activity: "Purchased Pro Plan", time: "2h ago" },
-    { name: "Emily Davis", activity: "Added new project", time: "4h ago" },
-    { name: "Michael Lee", activity: "Updated profile", time: "6h ago" },
-  ];
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInEmail");
     navigate("/login");
   };
 
-  const handleConnect = () => {
-    if (isConnected) return setIsConnected(false);
-    setIsConnecting(true);
-    setTimeout(() => {
-      setIsConnecting(false);
-      setIsConnected(true);
-    }, 2000);
-  };
-
-  const handleSearch = (e) => setSearchValue(e.target.value);
   const openMenu = (setter) => (e) => setter(e.currentTarget);
   const closeMenu = (setter) => () => setter(null);
 
+  const handleAddToCart = (product) => {
+    setCartItems((prev) => [...prev, product]);
+  };
+
+  const handleRemoveFromCart = (id) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleSearch = (e) => setSearchValue(e.target.value);
+
+  const handleOpenCheckout = () => setCheckoutOpen(true);
+  const handleCloseCheckout = () => setCheckoutOpen(false);
+
+  const products = [
+    {
+      id: 1,
+      name: "Wireless Headphones",
+      price: 99.99,
+      img: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 2,
+      name: "Smartwatch",
+      price: 149.99,
+      img: "https://images.unsplash.com/photo-1606813903131-df2d2ff33e21?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 3,
+      name: "Gaming Mouse",
+      price: 59.99,
+      img: "https://images.unsplash.com/photo-1587202372775-6179e1c61f31?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 4,
+      name: "Mechanical Keyboard",
+      price: 89.99,
+      img: "https://images.unsplash.com/photo-1593642532973-d31b6557fa68?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 5,
+      name: "Laptop Stand",
+      price: 39.99,
+      img: "https://images.unsplash.com/photo-1585079540219-d4b947b4e1b0?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 6,
+      name: "Bluetooth Speaker",
+      price: 79.99,
+      img: "https://images.unsplash.com/photo-1585386959984-a415522b8f2b?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 7,
+      name: "Smart Glasses",
+      price: 129.99,
+      img: "https://images.unsplash.com/photo-1573497491208-6b1acb260507?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: 8,
+      name: "Drone Mini",
+      price: 199.99,
+      img: "https://images.unsplash.com/photo-1581091870622-d1f92d59aa4f?auto=format&fit=crop&w=400&q=80",
+    },
+  ];
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
+  const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0).toFixed(2);
+
   return (
-    <Box sx={{ bgcolor: "#010018", minHeight: "100vh", p: { xs: 2, md: 3 }, color: "#fff" }}>
+    <Box sx={{ bgcolor: "#010018", minHeight: "100vh", color: "#fff" }}>
       {/* HEADER */}
       <Box
         sx={{
@@ -101,29 +122,19 @@ const DashboardPro = () => {
           flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 4,
-          bgcolor: "#0f0229",
-          borderRadius: 2,
           p: 2,
+          bgcolor: "#0f0229",
           boxShadow: 3,
-          gap: { xs: 2, sm: 0 },
+          gap: 2,
         }}
       >
-        <Typography sx={{ fontSize: { xs: 20, md: 24 }, fontWeight: 800, color: "#a78bfa" }}>
-          Dashboard
+        <Typography sx={{ fontSize: 24, fontWeight: 800, color: "#a78bfa" }}>
+          🛍️ PAK Shopping
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 1,
-            mt: { xs: 1, sm: 0 },
-          }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
           <TextField
-            placeholder="Search..."
+            placeholder="Search products..."
             size="small"
             value={searchValue}
             onChange={handleSearch}
@@ -132,7 +143,7 @@ const DashboardPro = () => {
               borderRadius: 5,
               input: { color: "#fff" },
               "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-              width: { xs: "100%", sm: 200, md: 250 },
+              width: { xs: "100%", sm: 250 },
             }}
           />
 
@@ -142,7 +153,6 @@ const DashboardPro = () => {
           <Menu anchorEl={anchorElSettings} open={Boolean(anchorElSettings)} onClose={closeMenu(setAnchorElSettings)}>
             <MenuItem>Account Settings</MenuItem>
             <MenuItem>Dark Mode</MenuItem>
-            <MenuItem>System Preferences</MenuItem>
           </Menu>
 
           <IconButton color="inherit" onClick={openMenu(setAnchorElInbox)}>
@@ -150,7 +160,7 @@ const DashboardPro = () => {
           </IconButton>
           <Menu anchorEl={anchorElInbox} open={Boolean(anchorElInbox)} onClose={closeMenu(setAnchorElInbox)}>
             <MenuItem>
-              <ListItemText primary="New message from Alex" secondary="Just now" />
+              <ListItemText primary="New Offer Available!" secondary="2h ago" />
             </MenuItem>
           </Menu>
 
@@ -159,152 +169,138 @@ const DashboardPro = () => {
           </IconButton>
           <Menu anchorEl={anchorElNotif} open={Boolean(anchorElNotif)} onClose={closeMenu(setAnchorElNotif)}>
             <MenuItem>
-              <ListItemText primary="New user registered" secondary="1h ago" />
+              <ListItemText primary="Price drop on Smartwatch!" secondary="1h ago" />
             </MenuItem>
           </Menu>
 
-          <Button
-            variant="contained"
-            onClick={handleConnect}
-            disabled={isConnecting}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              ml: 1,
-              px: 3,
-              fontWeight: 600,
-              background: isConnected
-                ? "linear-gradient(90deg, #f43f5e 0%, #fb7185 100%)"
-                : "linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%)",
-              "&:hover": {
-                background: isConnected
-                  ? "linear-gradient(90deg, #fb7185 0%, #f43f5e 100%)"
-                  : "linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%)",
-              },
-              width: { xs: "100%", sm: "auto" },
-            }}
-          >
-            {isConnecting ? "Connecting..." : isConnected ? "Disconnect" : "Connect"}
-          </Button>
+          <IconButton color="inherit" onClick={handleOpenCheckout}>
+            <Badge badgeContent={cartItems.length} color="error">
+              <ShoppingCartIcon />
+            </Badge>
+          </IconButton>
 
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<LogoutIcon />}
-            onClick={handleLogout}
-            sx={{ borderRadius: 2, textTransform: "none", ml: 1, px: 3, fontWeight: 600, width: { xs: "100%", sm: "auto" } }}
-          >
+          <Button variant="contained" color="error" startIcon={<LogoutIcon />} onClick={handleLogout}>
             Logout
           </Button>
         </Box>
       </Box>
 
-      {/* LOADING SCREEN */}
-      {isConnecting && (
+      {/* PRODUCT GRID */}
+      <Box sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {filteredProducts.map((product) => (
+            <Grid item xs={12} sm={6} md={3} key={product.id}>
+              <Paper
+                sx={{
+                  bgcolor: "#12063a",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  p: 2,
+                  transition: "0.3s",
+                  "&:hover": { transform: "scale(1.05)", boxShadow: 6 },
+                }}
+              >
+                <Box
+                  component="img"
+                  src={product.img}
+                  alt={product.name}
+                  sx={{ width: "100%", height: 160, objectFit: "cover", borderRadius: 2, mb: 2 }}
+                />
+                <Typography sx={{ fontWeight: 700, fontSize: 18 }}>{product.name}</Typography>
+                <Typography sx={{ color: "#a3a3a3", mb: 2 }}>${product.price.toFixed(2)}</Typography>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => handleAddToCart(product)}
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: 2,
+                    background: "linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%)",
+                    "&:hover": { background: "linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%)" },
+                  }}
+                >
+                  Add to Cart
+                </Button>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* CHECKOUT MODAL */}
+      <Modal open={checkoutOpen} onClose={handleCloseCheckout}>
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "60vh",
-            flexDirection: "column",
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: { xs: "90%", sm: 500 },
+            bgcolor: "#12063a",
+            color: "#fff",
+            borderRadius: 3,
+            p: 3,
           }}
         >
-          <CircularProgress color="secondary" />
-          <Typography sx={{ mt: 2, fontSize: 20, color: "#a78bfa" }}>Connecting...</Typography>
-        </Box>
-      )}
-
-      {/* DASHBOARD CONTENT */}
-      {isConnected && !isConnecting && (
-        <>
-          <Paper sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#12063a", color: "#fff" }}>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "space-between",
-                mb: 2,
-                gap: { xs: 2, sm: 0 },
-              }}
-            >
-              <Typography sx={{ fontWeight: 700, fontSize: 20 }}>Total Sales</Typography>
-              <Select
-                size="small"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                sx={{
-                  borderRadius: 2,
-                  bgcolor: "#1e0a49",
-                  color: "#fff",
-                  "& .MuiSelect-icon": { color: "#fff" },
-                  width: { xs: "100%", sm: 150 },
-                }}
-              >
-                <MenuItem value="Weekly">Weekly</MenuItem>
-                <MenuItem value="Monthly">Monthly</MenuItem>
-                <MenuItem value="Yearly">Yearly</MenuItem>
-              </Select>
-            </Box>
-            <Chart options={salesOptions} series={salesSeries} type="area" height={300} />
-          </Paper>
-
-          <Grid container spacing={3} mb={4}>
-            <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "#12063a", color: "#fff" }}>
-                <Typography sx={{ fontWeight: 700, mb: 2, fontSize: 20 }}>Revenue Comparison</Typography>
-                <Chart options={columnOptions} series={columnSeries} type="bar" height={280} />
-              </Paper>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "#12063a", color: "#fff" }}>
-                <Typography sx={{ mb: 2, fontSize: 20 }}>Sales by Category</Typography>
-                <Chart
-                  options={{
-                    chart: { type: "donut" },
-                    labels: ["Electronics", "Clothing", "Home Decor", "Accessories"],
-                    colors: ["#9500ff", "#ff5e00", "#ffcc00", "#0055ff"],
-                    legend: { position: "bottom", labels: { colors: "#cbd5e1" } },
-                    dataLabels: { enabled: true, style: { colors: ["#fff"] } },
-                  }}
-                  series={[44, 33, 23, 15]}
-                  type="donut"
-                />
-              </Paper>
-            </Grid>
-          </Grid>
-
-          <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "#12063a", color: "#fff" }}>
-            <Typography sx={{ fontWeight: 800, mb: 2, fontSize: 20 }}>Recent User Activity</Typography>
-            {users.map((user, i) => (
-              <Box
-                key={i}
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "space-between",
-                  py: 1.5,
-                  borderBottom: i !== users.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none",
-                  gap: { xs: 1, sm: 0 },
-                }}
-              >
-                <Box>
-                  <Typography sx={{ fontWeight: 700 }}>{user.name}</Typography>
-                  <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
-                    {user.activity}
-                  </Typography>
-                </Box>
-                <Typography variant="body2" sx={{ color: "#a3a3a3", fontStyle: "italic" }}>
-                  {user.time}
-                </Typography>
-              </Box>
+          <Typography variant="h6" mb={2}>
+            Your Order
+          </Typography>
+          <List sx={{ maxHeight: 300, overflow: "auto" }}>
+            {cartItems.map((item) => (
+              <ListItem key={item.id} secondaryAction={
+                <Button color="error" onClick={() => handleRemoveFromCart(item.id)}>Remove</Button>
+              }>
+                <ListItemAvatar>
+                  <Avatar src={item.img} />
+                </ListItemAvatar>
+                <MuiListItemText primary={item.name} secondary={`$${item.price}`} />
+              </ListItem>
             ))}
-          </Paper>
-        </>
-      )}
+          </List>
+          <Divider sx={{ my: 2, bgcolor: "#555" }} />
+          <Typography>Total: ${totalPrice}</Typography>
+          <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleCloseCheckout}>
+            Place Order
+          </Button>
+        </Box>
+      </Modal>
+
+      {/* FOOTER */}
+      <Box sx={{ bgcolor: "#0f0229", mt: 6, p: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="h6" gutterBottom>
+              About Us
+            </Typography>
+            <Typography sx={{ fontSize: 14 }}>
+              PAK Shopping is your one-stop online store for electronics, fashion, home essentials and more.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="h6" gutterBottom>
+              Categories
+            </Typography>
+            <Typography sx={{ fontSize: 14 }}>Electronics</Typography>
+            <Typography sx={{ fontSize: 14 }}>Fashion</Typography>
+            <Typography sx={{ fontSize: 14 }}>Home & Kitchen</Typography>
+            <Typography sx={{ fontSize: 14 }}>Sports & Fitness</Typography>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="h6" gutterBottom>
+              Customer Service
+            </Typography>
+            <Typography sx={{ fontSize: 14 }}>Contact Us</Typography>
+            <Typography sx={{ fontSize: 14 }}>FAQ</Typography>
+            <Typography sx={{ fontSize: 14 }}>Return Policy</Typography>
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 3, bgcolor: "#555" }} />
+        <Typography sx={{ textAlign: "center", fontSize: 12 }}>
+          © 2025 PAK Shopping. All rights reserved.
+        </Typography>
+      </Box>
     </Box>
   );
 };
 
-export default DashboardPro;
+export default UserDashboardShop;
