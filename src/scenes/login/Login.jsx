@@ -173,152 +173,181 @@ const Login = () => {
 
   // Google Auth
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
     try {
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      if (!result) throw new Error("No result from Google sign-in");
+
       const user = result.user;
-      localStorage.setItem("loggedIn", "true");
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      speak(`Welcome ${user.displayName}`);
+      if (!user) throw new Error("No user returned");
+
+      localStorage.setItem(
+        "loggedIn",
+        "true"
+      );
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+        })
+      );
+
+      speak(`Welcome ${user.displayName || "User"}`);
       setSuccessSnackbar(true);
       navigate("/user-dashboard");
-    } catch {
+    } catch (error) {
+      console.error("Google login error:", error);
       speak("Google login failed");
       setOpenSnackbar(true);
     }
   };
 
-
   // GitHub Auth
   const handleGitHubLogin = async () => {
-    const provider = new GithubAuthProvider();
     try {
+      const provider = new GithubAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      if (!result) throw new Error("No result from GitHub sign-in");
+
       const user = result.user;
-      localStorage.setItem("loggedIn", "true");
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      speak(`Welcome ${user.displayName}`);
+      if (!user) throw new Error("No user returned");
+
+      localStorage.setItem(
+        "loggedIn",
+        "true"
+      );
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+        })
+      );
+
+      speak(`Welcome ${user.displayName || "User"}`);
       setSuccessSnackbar(true);
       navigate("/user-dashboard");
-    } catch {
+    } catch (error) {
+      console.error("GitHub login error:", error);
       speak("GitHub login failed");
       setOpenSnackbar(true);
     }
   };
-  //load screen desingn
-  
-if (showLoader) {
-  return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#000000",
-        gap: 4,
-      }}
-    >
-      {/* iOS / macOS Style Spinner */}
+
+  // Loader
+  if (showLoader) {
+    return (
       <Box
         sx={{
-          position: "relative",
-          width: 80,
-          height: 80,
+          minHeight: "100vh",
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
+          background: "#000000",
+          gap: 4,
         }}
       >
-        {[...Array(12)].map((_, i) => (
-          <motion.span
-            key={i}
-            initial={{ opacity: 0.2 }}
-            animate={{ opacity: [1, 0.2] }}
-            transition={{
-              repeat: Infinity,
-              duration: 1.2,
-              delay: i * 0.1,
-            }}
-            style={{
-              position: "absolute",
-              top: "4px",
-              left: "50%",
-              width: "8px",
-              height: "18px",
-              background: "linear-gradient(180deg, #ffffff, #b0b0b0)",
-              borderRadius: "10px",
-              transformOrigin: "center 36px",
-              transform: `rotate(${i * 30}deg)`,
-              boxShadow: "0 0 6px rgba(255, 255, 255, 0.6)",
-            }}
-          />
-        ))}
-      </Box>
-
-{/* Loading Text */}
-<motion.div
-  animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }}
-  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
->
-  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-    <Typography
-      sx={{
-        fontSize: "1.4rem",
-        fontWeight: 600,
-        color: "#f5f5f5",
-        letterSpacing: "0.5px",
-        fontFamily: "SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif",
-      }}
-    >
-      Loading
-    </Typography>
-    {[...Array(3)].map((_, i) => (
-      <motion.span
-        key={i}
-        animate={{ opacity: [0, 1, 0] }}
-        transition={{
-          repeat: Infinity,
-          duration: 1.2,
-          delay: i * 0.3,
-          ease: "easeInOut",
-        }}
-        style={{
-          fontSize: "1.4rem",
-          fontWeight: 600,
-          color: "#f5f5f5",
-        }}
-      >
-        .
-      </motion.span>
-    ))}
-  </Box>
-</motion.div>
-
-
-      {/* Subtext */}
-      <motion.div
-        animate={{ opacity: [0.3, 1, 0.3] }}
-        transition={{ repeat: Infinity, duration: 2.4 }}
-      >
-        <Typography
+        <Box
           sx={{
-            fontSize: "0.95rem",
-            color: "#888",
-            mt: 2,
-            fontStyle: "italic",
-            fontFamily: "SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
+            position: "relative",
+            width: 80,
+            height: 80,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          Preparing your Sign form...
-        </Typography>
-      </motion.div>
-    </Box>
-  );
-}
+          {[...Array(12)].map((_, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 0.2 }}
+              animate={{ opacity: [1, 0.2] }}
+              transition={{
+                repeat: Infinity,
+                duration: 1.2,
+                delay: i * 0.1,
+              }}
+              style={{
+                position: "absolute",
+                top: "4px",
+                left: "50%",
+                width: "8px",
+                height: "18px",
+                background: "linear-gradient(180deg, #ffffff, #b0b0b0)",
+                borderRadius: "10px",
+                transformOrigin: "center 36px",
+                transform: `rotate(${i * 30}deg)`,
+                boxShadow: "0 0 6px rgba(255, 255, 255, 0.6)",
+              }}
+            />
+          ))}
+        </Box>
 
+        <motion.div
+          animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography
+              sx={{
+                fontSize: "1.4rem",
+                fontWeight: 600,
+                color: "#f5f5f5",
+                letterSpacing: "0.5px",
+                fontFamily:
+                  "SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif",
+              }}
+            >
+              Loading
+            </Typography>
+            {[...Array(3)].map((_, i) => (
+              <motion.span
+                key={i}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 1.2,
+                  delay: i * 0.3,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  fontSize: "1.4rem",
+                  fontWeight: 600,
+                  color: "#f5f5f5",
+                }}
+              >
+                .
+              </motion.span>
+            ))}
+          </Box>
+        </motion.div>
 
+        <motion.div
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2.4 }}
+        >
+          <Typography
+            sx={{
+              fontSize: "0.95rem",
+              color: "#888",
+              mt: 2,
+              fontStyle: "italic",
+              fontFamily:
+                "SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
+            }}
+          >
+            Preparing your Sign form...
+          </Typography>
+        </motion.div>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -353,14 +382,34 @@ if (showLoader) {
               justifyContent: "center",
             }}
           >
+            {/* Top Logo */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 4 }}>
+              <motion.img
+                src="/assets/loading-logo.png"
+                alt="PAK CRM"
+                style={{ width: 40, height: 40 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1 }}
+              />
+              <Typography
+                sx={{ color: "#90caf9", fontWeight: "bold", fontSize: "1.5rem" }}
+              >
+                PAK CRM
+              </Typography>
+            </Box>
+
             <Typography
               variant="h2"
-              fontWeight="bold"
-              textAlign="center"
-              mb={5}
+              fontWeight="700"
+              textAlign={'center'}
               color="#ffffff"
+              mb={1}
             >
-              LOGIN
+              Welcome back
+            </Typography>
+            <Typography variant="subtitle1" textAlign={'center'}  color="#bbbbbb" mb={5}>
+              Please enter your details
             </Typography>
 
             {/* Email */}
@@ -467,7 +516,9 @@ if (showLoader) {
                 background: "linear-gradient(90deg,#7c3aed 0%,#a78bfa 100%)",
                 color: "#fff",
                 fontWeight: "bold",
-                "&:hover": { background: "linear-gradient(90deg,#a78bfa 0%,#7c3aed 100%)" },
+                "&:hover": {
+                  background: "linear-gradient(90deg,#a78bfa 0%,#7c3aed 100%)",
+                },
               }}
             >
               {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Login"}
@@ -520,8 +571,7 @@ if (showLoader) {
                 width: "100%",
                 height: "100%",
                 background:
-                  "linear-gradient(135deg, rgba(25, 77, 210, 0.85) 0%, rgba(0, 0, 0, 0.6) 100%)",
-                backdropFilter: "blur(5px)",
+                  "linear-gradient(135deg, rgba(9, 101, 248, 0.54) 0%, rgba(0, 0, 0, 0.6) 100%)",
               }}
             />
             <Box
@@ -543,21 +593,23 @@ if (showLoader) {
               }}
             >
               <motion.img
-                src="/assets/loading-logo.png"
+                src="/assets/se2.png  "
                 alt="PAK CRM Logo"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 1.2 }}
                 style={{
-                  width: "120px",
+                  width: "320px",
                   borderRadius: "16px",
-                  marginBottom: "25px",
-                  boxShadow: "0 0 25px rgba(255,255,255,0.4)",
-                  padding: "6px",
+                  marginBottom: "30px",
+                  padding: "10px",
                 }}
               />
-              <Typography variant="h3" fontWeight={700}>
-                Welcome to <span style={{ color: "#90caf9" }}>PAK CRM</span>
+              <Typography variant="h1" fontWeight={700}>
+                Welcome to <span style={{ color: "#90cff9ff" }}>PAK CRM</span>
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                Your business, streamlined and managed efficiently.
               </Typography>
             </Box>
           </Box>

@@ -24,11 +24,12 @@ import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
-import BarChart from "../../components/BarChart"; // Added
-import PieChart from "../../components/PieChart"; // Added
-import GeographyChart from "../../components/GeographyChart"; // Added
+import BarChart from "../../components/BarChart";
+import PieChart from "../../components/PieChart";
+import GeographyChart from "../../components/GeographyChart";
 import StatBox from "../../components/StatBox";
 import ContactEmailForm from "../../components/ContactEmailForm";
+import { motion } from "framer-motion";
 
 const ADMIN_SESSION_KEY = "admin-access-granted";
 const ADMIN_PASSWORD = "admin123";
@@ -50,7 +51,7 @@ const Dashboard = () => {
 
   // simulate page loading
   useEffect(() => {
-    const timer = setTimeout(() => setLoadingPage(false), 1500);
+    const timer = setTimeout(() => setLoadingPage(false), 3500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -72,8 +73,6 @@ const Dashboard = () => {
       } else {
         const defaultUsers = [
           { _id: "1", name: "Admin User", age: 30, email: "admin@gmail.com", password: "admin123", access: "admin" },
-          { _id: "2", name: "John Doe", age: 25, email: "john@gmail.com", password: "john123", access: "manager" },
-          { _id: "3", name: "Jane Smith", age: 27, email: "jane@gmail.com", password: "jane123", access: "user" },
         ];
         setRecentUsers(defaultUsers);
         localStorage.setItem(TEAM_KEY, JSON.stringify(defaultUsers));
@@ -131,27 +130,113 @@ const Dashboard = () => {
     }, 1500);
   };
 
+  // Loading screen with dark mode support
   if (loadingPage) {
+    const darkMode = theme.palette.mode === "dark";
+
+    const spinnerColor = darkMode
+      ? "linear-gradient(180deg, #ffffff, #888888)" // light gradient for dark mode
+      : "linear-gradient(180deg, #000000ff, #3c3c3cff)"; // original for light mode
+
+    const textColor = darkMode ? "#ffffff" : "#000000";
+    const subtitleColor = darkMode ? "#bbbbbb" : "#aaaaaa";
+
     return (
       <Box
         sx={{
-          height: "100vh",
-          width: "80vw",
+          minHeight: "100vh",
+          width: "100%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: colors.primary[400],
+          gap: 4,
         }}
       >
-        <CircularProgress color="secondary" size={80} thickness={5} />
-        <Typography variant="h3" sx={{ mt: 3, fontWeight: "bold" }}>
-          Loading Dashboard...
+        {/* iOS / macOS style spinner */}
+        <Box
+          sx={{
+            position: "relative",
+            width: 80,
+            height: 80,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {[...Array(12)].map((_, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 0.2 }}
+              animate={{ opacity: [1, 0.2] }}
+              transition={{
+                repeat: Infinity,
+                duration: 1.2,
+                delay: i * 0.1,
+              }}
+              style={{
+                position: "absolute",
+                top: "4px",
+                left: "50%",
+                width: "8px",
+                height: "18px",
+                background: spinnerColor,
+                borderRadius: "10px",
+                transformOrigin: "center 36px",
+                transform: `rotate(${i * 30}deg)`,
+              }}
+            />
+          ))}
+        </Box>
+
+        {/* Loading Text */}
+        <motion.div
+          animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography
+              sx={{
+                fontSize: "1.6rem",
+                fontWeight: 700,
+                letterSpacing: "0.5px",
+                fontFamily: "SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif",
+                color: textColor,
+              }}
+            >
+              Loading
+            </Typography>
+            {[...Array(3)].map((_, i) => (
+              <motion.span
+                key={i}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 1.2,
+                  delay: i * 0.3,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  fontSize: "1.6rem",
+                  fontWeight: 700,
+                  color: textColor,
+                }}
+              >
+                .
+              </motion.span>
+            ))}
+          </Box>
+        </motion.div>
+
+        {/* Optional: small subtitle */}
+        <Typography sx={{ fontSize: "0.9rem", color: subtitleColor, mt: 2 }}>
+          Please wait while we prepare your dashboard...
         </Typography>
       </Box>
     );
   }
 
+  // MAIN DASHBOARD UI
   return (
     <Box sx={{ height: "100vh", overflow: "hidden", p: isMobile ? 2 : 3, position: "relative" }}>
       {/* HEADER */}
@@ -232,8 +317,7 @@ const Dashboard = () => {
           </Box>
         </Box>
 
-
-             {/* Recent Users */}
+        {/* Recent Users */}
         <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 6" : "span 4"} gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
           <Box display="flex" justifyContent="space-between" alignItems="center" borderBottom={`4px solid ${colors.primary[500]}`} p="15px">
             <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
@@ -313,38 +397,36 @@ const Dashboard = () => {
           )}
         </Box>
 
-          {/* Bar Chart */}
-          <Box gridColumn={isMobile ?  "span 1" : isTablet ? "span 3" : "span 4"}  gridRow="span 2" ackgroundColor={colors.primary[400]}>
-            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}  m="20px" p="30px">
-              Sales Overview
-            </Typography>
-            <Box height="250px" m="-40px">
-              <BarChart isDashboard={true} />
-            </Box>
+        {/* Bar Chart */}
+        <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2" backgroundColor={colors.primary[400]}>
+          <Typography variant="h5" fontWeight="600" color={colors.grey[100]} m="20px" p="30px">
+            Sales Overview
+          </Typography>
+          <Box height="250px" m="-40px">
+            <BarChart isDashboard={true} />
           </Box>
-
-          {/* Pie Chart */}
-          <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2" >
-            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}m="20px" p="40px">
-              User Distribution
-            </Typography>
-            <Box height="190px" m="-40px">
-              <PieChart isDashboard={true} />
-            </Box>
-          </Box>
-
-          {/* Geography Chart */}
-          <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2">
-            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}m="20px" p="30px">
-              Traffic by Region
-            </Typography>
-            <Box height="250px" m="-40px">
-              <GeographyChart isDashboard={true} />
-            </Box>
-          </Box>
-
-    
         </Box>
+
+        {/* Pie Chart */}
+        <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2">
+          <Typography variant="h5" fontWeight="600" color={colors.grey[100]} m="20px" p="40px">
+            User Distribution
+          </Typography>
+          <Box height="190px" m="-40px">
+            <PieChart isDashboard={true} />
+          </Box>
+        </Box>
+
+        {/* Geography Chart */}
+        <Box gridColumn={isMobile ? "span 1" : isTablet ? "span 3" : "span 4"} gridRow="span 2">
+          <Typography variant="h5" fontWeight="600" color={colors.grey[100]} m="20px" p="30px">
+            Traffic by Region
+          </Typography>
+          <Box height="250px" m="-40px">
+            <GeographyChart isDashboard={true} />
+          </Box>
+        </Box>
+      </Box>
 
       {/* Success Snackbar */}
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: "top", horizontal: "center" }}>

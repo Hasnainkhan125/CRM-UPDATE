@@ -25,8 +25,8 @@ const UserSettings = () => {
 
   // Apply background color based on darkMode
   useEffect(() => {
-    document.body.style.backgroundColor = settings.darkMode ? "#121212" : "#f5f5f5";
-    document.body.style.color = settings.darkMode ? "#fff" : "#000";
+    document.body.style.backgroundColor = settings.darkMode ? "#121212" : "#000000ff";
+    document.body.style.color = settings.darkMode ? "#000000ff" : "#000";
   }, [settings.darkMode]);
 
   const handleChange = (e) => {
@@ -70,10 +70,9 @@ const UserSettings = () => {
           p: 4,
           borderRadius: 3,
           background: settings.darkMode
-            ? "rgba(30,30,30,0.7)"
-            : "rgba(255,255,255,0.05)",
-          backdropFilter: "blur(10px)",
-          color: "#fff",
+            ? "rgba(30, 30, 30, 1)"
+            : "rgba(0, 0, 0, 1)",
+          color: "#000000ff",
           transition: "0.3s all",
           "&:hover": { transform: "scale(1.01)" },
         }}

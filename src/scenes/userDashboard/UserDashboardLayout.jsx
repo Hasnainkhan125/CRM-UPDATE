@@ -12,8 +12,8 @@ const UserDashboardLayout = () => {
       sx={{
         display: "flex",
         height: "100vh",
-        background: "linear-gradient(180deg, rgba(0, 0, 28, 1), rgba(0, 0, 28, 1))",
-        color: "#fff",
+        background: "linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1))",
+        color: "#000000ff",
       }}
     >
       {/* ✅ Sidebar */}

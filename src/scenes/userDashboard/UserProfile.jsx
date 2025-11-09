@@ -99,8 +99,8 @@ const handleAvatarChange = (e) => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        color: "#fff",
-        background: "linear-gradient(180deg, rgba(0, 0, 28, 1), rgba(0, 0, 28, 1))",
+        color: "#000000ff",
+        background: "linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1))",
       }}
     >
       <motion.div
@@ -114,7 +114,7 @@ const handleAvatarChange = (e) => {
             p: 4,
             width: "100%",
             maxWidth: 500,
-            backgroundColor: "rgba(0, 15, 45, 0.95)",
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
             borderRadius: "16px",
           }}
         >
@@ -156,7 +156,7 @@ const handleAvatarChange = (e) => {
             <Typography variant="h5" fontWeight="bold">
               Edit Profile
             </Typography>
-            <Typography variant="body2" color="rgba(255,255,255,0.6)">
+            <Typography variant="body2" color="rgba(0, 0, 0, 0.6)">
               Update your personal information below
             </Typography>
           </Box>
@@ -169,8 +169,8 @@ const handleAvatarChange = (e) => {
               onChange={handleChange}
               fullWidth
               margin="normal"
-              InputLabelProps={{ style: { color: "#aaa" } }}
-              InputProps={{ style: { color: "white" } }}
+              InputLabelProps={{ style: { color: "#000000ff" } }}
+              InputProps={{ style: { color: "black" } }}
             />
 
             <TextField
@@ -180,8 +180,8 @@ const handleAvatarChange = (e) => {
               onChange={handleChange}
               fullWidth
               margin="normal"
-              InputLabelProps={{ style: { color: "#aaa" } }}
-              InputProps={{ style: { color: "white" } }}
+              InputLabelProps={{ style: { color: "#000000ff" } }}
+              InputProps={{ style: { color: "black" } }}
             />
 
             <TextField
@@ -192,8 +192,8 @@ const handleAvatarChange = (e) => {
               onChange={handleChange}
               fullWidth
               margin="normal"
-              InputLabelProps={{ style: { color: "#aaa" } }}
-              InputProps={{ style: { color: "white" } }}
+              InputLabelProps={{ style: { color: "#000000ff" } }}
+              InputProps={{ style: { color: "black" } }}
             />
 
             <Button
@@ -205,7 +205,7 @@ const handleAvatarChange = (e) => {
                 backgroundColor: "#FFD700",
                 color: "#000",
                 fontWeight: "bold",
-                "&:hover": { backgroundColor: "#FFC107" },
+                "&:hover": { backgroundColor: "#FFD700" },
               }}
             >
               Save Changes
