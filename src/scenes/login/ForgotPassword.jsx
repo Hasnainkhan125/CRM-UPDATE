@@ -128,7 +128,7 @@ const ForgotPassword = () => {
                 left: "50%",
                 width: "8px",
                 height: "18px",
-                background: "linear-gradient(180deg, #ffffff, #b0b0b0)",
+                background: "linear-gradient(180deg, #ffffffff, #b0b0b0)",
                 borderRadius: "10px",
                 transformOrigin: "center 36px",
                 transform: `rotate(${i * 30}deg)`,

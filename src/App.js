@@ -32,22 +32,18 @@ import AIDashboard from "./scenes/aiDashboard/aidashboard";
 // 🔹 User Dashboard Imports
 import UserDashboardLayout from "./scenes/userDashboard/UserDashboardLayout";
 import UserDashboardHome from "./scenes/userDashboard/UserDashboardHome";
-import UserProfile from "./scenes/userDashboard/UserProfile";
-import UserSettings from "./scenes/userDashboard/UserSettings";
-import UserHelp from "./scenes/userDashboard/UserHelp";
+import UserProfile from "./scenes/userDashboard/Userprofile";
+import CheckoutForm from "./scenes/userDashboard/CheckoutForm"; // new checkout page
 
 // 🔹 Homepage Import
 import HomePage from "./scenes/Homepage/HomePage";
 
 function App() {
-  // 🌓 Load and control theme mode
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
 
-  const isLoggedIn = localStorage.getItem("loggedIn") === "true";
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
 
-  // 🧩 Optional: ensure localStorage stays synced if changed manually
   useEffect(() => {
     const savedMode = localStorage.getItem("themeMode") || "dark";
     document.body.dataset.theme = savedMode;
@@ -59,15 +55,15 @@ function App() {
         <CssBaseline />
         <NotificationProvider>
           <Routes>
-            {/* ✅ Homepage */}
+            {/* Homepage */}
             <Route path="/" element={<HomePage />} />
 
-            {/* ✅ Auth */}
+            {/* Auth */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* ✅ User Dashboard */}
+            {/* User Dashboard */}
             <Route
               path="/user-dashboard/*"
               element={
@@ -78,11 +74,10 @@ function App() {
             >
               <Route index element={<UserDashboardHome />} />
               <Route path="profile" element={<UserProfile />} />
-              <Route path="settings" element={<UserSettings />} />
-              <Route path="help" element={<UserHelp />} />
+              <Route path="checkout" element={<CheckoutForm />} /> {/* ✅ relative path */}
             </Route>
 
-            {/* ✅ Admin Dashboard (single page) */}
+            {/* Admin Dashboard */}
             <Route
               path="/admin-dashboard"
               element={
@@ -98,7 +93,7 @@ function App() {
               }
             />
 
-            {/* ✅ Admin Panel (nested routes using Outlet) */}
+            {/* Admin Panel Nested Routes */}
             <Route
               path="/admin/*"
               element={
@@ -107,7 +102,7 @@ function App() {
                     <Sidebar isSidebar={isSidebar} />
                     <main className="content">
                       <Topbar setIsSidebar={setIsSidebar} user={currentUser} />
-                      <Outlet /> {/* ✅ This replaces the inner <Routes> */}
+                      <Outlet />
                     </main>
                   </div>
                 </ProtectedRoute>
@@ -133,7 +128,7 @@ function App() {
               <Route path="*" element={<Navigate to="/admin/dashboard" />} />
             </Route>
 
-            {/* ✅ Catch-all */}
+            {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </NotificationProvider>

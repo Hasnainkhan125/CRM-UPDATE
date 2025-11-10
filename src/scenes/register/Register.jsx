@@ -117,11 +117,30 @@ const Register = () => {
       setSnackbarOpen(true);
       speak("Account created successfully.");
 
-      setTimeout(() => navigate("/login"), 2500);
-    }, 1500);
+      setTimeout(() => navigate("/login"), 4500);
+    }, 4500);
   };
 
-  // 🔹 Custom Animated Loader Screen
+  // 🔹 Modern Field Styles (reused for all fields)
+  const modernFieldStyle = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "12px",
+      transition: "all 0.25s ease",
+      "& fieldset": { borderColor: "#bdbdbd" },
+      "&:hover fieldset": {
+        borderColor: "#000",
+        boxShadow: "0 0 6px rgba(0,0,0,0.1)",
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: "#000",
+        boxShadow: "0 0 8px rgba(0,0,0,0.25)",
+      },
+    },
+    "& .MuiInputLabel-root": { color: "#333", fontWeight: 500 },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#000" },
+  };
+
+  // 🔹 Loader Screen
   if (showLoader) {
     return (
       <Box
@@ -224,7 +243,7 @@ const Register = () => {
                 "SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
             }}
           >
-            Preparing your Registration  form...
+            Preparing your Registration form...
           </Typography>
         </motion.div>
       </Box>
@@ -239,344 +258,324 @@ const Register = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#0b0a0aff",
+        backgroundColor: "#f5f5f7",
         p: 2,
       }}
     >
-      <Fade in timeout={1900}>
+      <Fade in timeout={1200}>
         <Paper
-          elevation={16}
+          elevation={10}
           sx={{
-            width: showFullForm ? "100%" : { xs: "90%", sm: "90%", md: "50%" },
-            height: showFullForm ? "100vh" : { xs: "auto", md: "400px" },
+            width: { xs: "95%", sm: "80%", md: "65%" },
             display: "flex",
-            flexDirection: { xs: "column", md: showFullForm ? "row" : "column" },
-            borderRadius: "20px",
+            flexDirection: { xs: "column", md: "row" },
+            borderRadius: 4,
             overflow: "hidden",
-            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5)",
+            background: "#fff",
           }}
         >
           {/* Left Form Section */}
           <Box
             sx={{
               flex: 1,
-              background: "linear-gradient(145deg, #222222, #1a1a1a)",
-              p: { xs: 6, md: 12 },
+              p: { xs: 4, md: 6 },
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
-              borderRight: showFullForm ? { md: "1px solid #333" } : "none",
+              justifyContent: "center",
+              gap: 2,
             }}
           >
-            <Box>
-              <Typography
-                variant="h3"
-                fontWeight="700"
-                textAlign={"center"}
-                color="#ffffff"
-                mb={3}
-              >
-                {!isVerified ? "Admin Verification" : "Create Your Account"}
-              </Typography>
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              sx={{ color: "#000", mb: 2, textAlign: "center" }}
+            >
+              {!isVerified ? "Admin Verification" : "Create Your Account"}
+            </Typography>
 
-              {!isVerified ? (
-                <>
-                  <TextField
-                    fullWidth
-                    label="Admin Code"
-                    value={adminCodeInput}
-                    onChange={(e) => setAdminCodeInput(e.target.value)}
-                    InputLabelProps={{ style: { color: "#aaa" } }}
-                    InputProps={{
-                      style: {
-                        color: "#fff",
-                        backgroundColor: "#1a1a1a",
-                        borderRadius: "12px",
-                      },
-                    }}
-                    sx={{
-                      mb: 3,
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": { borderColor: "#444" },
-                        "&:hover fieldset": { borderColor: "#7c3aed" },
-                        "&.Mui-focused fieldset": { borderColor: "#a78bfa", borderWidth: 2 },
-                      },
-                    }}
-                  />
-                  <Button
-                    fullWidth
-                    onClick={handleCodeVerify}
-                    sx={{
-                      py: 1.5,
-                      borderRadius: "12px",
-                      background: "linear-gradient(90deg,#7c3aed 0%,#a78bfa 100%)",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      "&:hover": {
-                        background: "linear-gradient(90deg,#a78bfa 0%,#7c3aed 100%)",
-                      },
-                    }}
-                  >
-                    Verify
-                  </Button>
-                </>
-              ) : (
-                <>
-                  {[
-                    "name",
-                    "contact",
-                    "address",
-                    "city",
-                    "email",
-                    "password",
-                    "confirmPassword",
-                  ].map((field) => (
+            {!isVerified ? (
+              <>
+                <TextField
+                  label="Admin Code"
+                  value={adminCodeInput}
+                  onChange={(e) => setAdminCodeInput(e.target.value)}
+                  fullWidth
+                  InputLabelProps={{ style: { color: "black" } }}
+                  InputProps={{
+                    style: { color: "black", backgroundColor: "#fff" },
+                  }}
+                  sx={modernFieldStyle}
+                />
+                <Button
+                  onClick={handleCodeVerify}
+                  variant="contained"
+                  sx={{
+                    py: 1.2,
+                    fontWeight: "bold",
+                    backgroundColor: "black",
+                    "&:hover": { backgroundColor: "#333" },
+                  }}
+                >
+                  Verify
+                </Button>
+              </>
+            ) : (
+              <>
+                {["name", "contact", "address", "city", "email", "password", "confirmPassword"].map(
+                  (field) => (
                     <TextField
                       key={field}
-                      fullWidth
-                      type={
-                        field.toLowerCase().includes("password") && !showPassword
-                          ? "password"
-                          : "text"
-                      }
                       label={
                         field === "confirmPassword"
                           ? "Confirm Password"
                           : field.charAt(0).toUpperCase() + field.slice(1)
                       }
                       name={field}
+                      type={
+                        field.includes("password") && !showPassword ? "password" : "text"
+                      }
                       value={formData[field]}
                       onChange={handleChange}
-                      InputLabelProps={{ style: { color: "#aaa" } }}
+                      fullWidth
+                      InputLabelProps={{ style: { color: "black" } }}
                       InputProps={{
-                        style: {
-                          color: "#fff",
-                          backgroundColor: "#1a1a1a",
-                          borderRadius: "12px",
-                        },
+                        style: { color: "black", backgroundColor: "#fff" },
                         endAdornment:
-                          field.toLowerCase().includes("password") ? (
+                          field.includes("password") ? (
                             <InputAdornment position="end">
-                              <IconButton
-                                onClick={() => setShowPassword(!showPassword)}
-                              >
+                              <IconButton onClick={() => setShowPassword(!showPassword)}>
                                 {showPassword ? (
-                                  <VisibilityOff sx={{ color: "#fff" }} />
+                                  <VisibilityOff sx={{ color: "black" }} />
                                 ) : (
-                                  <Visibility sx={{ color: "#fff" }} />
+                                  <Visibility sx={{ color: "black" }} />
                                 )}
                               </IconButton>
                             </InputAdornment>
                           ) : null,
                       }}
-                      sx={{
-                        mb: 2,
-                        "& .MuiOutlinedInput-root": {
-                          "& fieldset": { borderColor: "#444" },
-                          "&:hover fieldset": { borderColor: "#7c3aed" },
-                          "&.Mui-focused fieldset": { borderColor: "#a78bfa", borderWidth: 2 },
-                        },
-                        "& .MuiInputLabel-root.Mui-focused": { color: "#a78bfa" },
-                      }}
+                      sx={modernFieldStyle}
                     />
-                  ))}
-                  <Button
-                    fullWidth
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    sx={{
-                      py: 1.5,
-                      borderRadius: "12px",
-                      background: "linear-gradient(90deg,#7c3aed 0%,#a78bfa 100%)",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      mt: 1,
-                      "&:hover": {
-                        background: "linear-gradient(90deg,#a78bfa 0%,#7c3aed 100%)",
-                      },
-                    }}
-                  >
-                    {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Register"}
-                  </Button>
-                </>
-              )}
-            </Box>
+                  )
+                )}
 
-            {/* Footer Link */}
-            <Box sx={{ textAlign: "center", mt: 1 }}>
-              <Typography variant="body2" sx={{ color: "#aaa" }}>
-                <Button
-                  onClick={() => navigate("/login")}
-                  sx={{
-                    color: "#aaa",
-                    textTransform: "none",
-                    "&:hover": {
-                      background: "transparent",
-                      textDecoration: "underline",
-                    },
-                  }}
-                >
-                  Already have an account?
-                </Button>
-              </Typography>
-            </Box>
-          </Box>
+<Button
+  variant="contained"
+  fullWidth
+  onClick={handleSubmit}
+  disabled={loading}
+  sx={{
+    py: 1.5,
+    fontWeight: "bold",
+    mt: 1,
+    backgroundColor: loading ? "#555" : "black",
+    color: loading ? "#79c0f9ff" : "#fff",
+    "&:hover": {
+      backgroundColor: loading ? "#666" : "#333",
+    },
+  }}
+>
+  {loading ? (
+    <CircularProgress
+      size={22}
+      sx={{
+        color: "#90caf9", // spinner color when loading
+      }}
+    />
+  ) : (
+    "Register"
+  )}
+</Button>
 
-          {/* Right Image Section */}
-          {showFullForm && (
-            <Box
-              sx={{
-                flex: 1,
-                display: { xs: "none", md: "block" },
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              {/* Blurred Background */}
-              <Box
+              </>
+            )}
+
+            <Typography variant="body2" textAlign="center" mt={2}>
+              <Button
+                onClick={() => navigate("/login")}
                 sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  backgroundImage: `url("/assets/auth/back3.jpg")`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  filter: "blur(5px)",
-                  zIndex: 0,
-                }}
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background:
-                    "linear-gradient(135deg, rgba(19, 19, 19, 0.24) 0%, rgba(0, 0, 0, 0.6) 100%)",
-                  zIndex: 1,
-                }}
-              />
-              <Box
-                component={motion.div}
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                sx={{
-                  position: "relative",
-                  zIndex: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  color: "#fff",
-                  px: 5,
+                  textTransform: "none",
+                  color: "black",
+                  "&:hover": { textDecoration: "underline" },
                 }}
               >
-                <motion.img
-                  src="/assets/se2.png"
-                  alt="PAK CRM Logo"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 1 }}
-                  style={{ width: 320, marginBottom: 30 }}
-                />
-                <Typography variant="h2" fontWeight={700} sx={{ mb: 2 }}>
-                  Welcome to <span style={{ color: "#90caf9" }}>PAK CRM</span>
-                </Typography>
-                <Typography variant="h6" sx={{ mt: 1, color: "#ccc", mb: 4 }}>
-                  Streamline your business efficiently.
-                </Typography>
+                Already have an account?
+              </Button>
+            </Typography>
+          </Box>
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 4,
-                    flexWrap: "wrap",
-                    justifyContent: "center",
-                    mt: 3,
-                  }}
-                >
-                  {[
-                    { icon: "💼", label: "Manage Clients" },
-                    { icon: "📊", label: "Analytics" },
-                    { icon: "⚡", label: "Fast Performance" },
-                    { icon: "🔒", label: "Secure Data" },
-                  ].map((feature, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.6 + idx * 0.2, duration: 1 }}
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          fontSize: 40,
-                          mb: 1,
-                          background: "rgba(255,255,255,0.1)",
-                          borderRadius: "50%",
-                          width: 70,
-                          height: 70,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backdropFilter: "blur(5px)",
-                        }}
-                      >
-                        {feature.icon}
-                      </Box>
-                      <Typography variant="subtitle2" sx={{ color: "#ccc" }}>
-                        {feature.label}
-                      </Typography>
-                    </motion.div>
-                  ))}
-                </Box>
+       {/* Right Section — Visual */}
+<Box
+  sx={{
+    flex: 1,
+    backgroundImage: `url("/assets/auth/back3.jpg")`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    position: "relative",
+    display: { xs: "none", md: "flex" },
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    textAlign: "center",
+    p: 4,
+    overflow: "hidden",
+  }}
+>
+  {/* Gradient + Blur Layer */}
+  <Box
+    sx={{
+      position: "absolute",
+      inset: 0,
+      background: "linear-gradient(135deg, rgba(55,0,255,0.45), rgba(0,0,0,0.6))",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      zIndex: 0,
+    }}
+  />
 
-                {/* Floating Blurred Shapes */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.4 }}
-                  transition={{ repeat: Infinity, duration: 6, yoyo: true }}
-                  style={{
-                    position: "absolute",
-                    width: 150,
-                    height: 150,
-                    borderRadius: "50%",
-                    background: "#90caf9",
-                    top: 50,
-                    left: 30,
-                    zIndex: 0,
-                    filter: "blur(80px)",
-                  }}
-                />
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.3 }}
-                  transition={{ repeat: Infinity, duration: 8, yoyo: true }}
-                  style={{
-                    position: "absolute",
-                    width: 200,
-                    height: 200,
-                    borderRadius: "50%",
-                    background: "#7c3aed",
-                    bottom: 50,
-                    right: 50,
-                    zIndex: 0,
-                    filter: "blur(100px)",
-                  }}
-                />
-              </Box>
-            </Box>
-          )}
+{/* Content */}
+<Box sx={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+  {/* Logo */}
+  <motion.img
+    src="/assets/loading-logo.png"
+    alt="Logo"
+    style={{
+      width: 320,
+      marginBottom: 24,
+      filter: "drop-shadow(0 0 20px rgba(0,0,0,0.5))",
+    }}
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 1 }}
+  />
+
+  {/* Main Title */}
+  <Typography
+    variant="h1"
+    fontWeight={800}
+    sx={{
+      color: "#fff",
+      textShadow: "0 0 20px rgba(0,0,0,0.5)",
+      mb: 1,
+    }}
+  >
+    Welcome to <span style={{ color: "#90caf9" }}>PAK CRM</span>
+  </Typography>
+
+  {/* Subtitle */}
+  <Typography
+    variant="body1"
+    sx={{
+      color: "rgba(255,255,255,0.85)",
+      mt: 1.5,
+      fontSize: "0.9rem",
+      fontWeight: 400,
+    }}
+  >
+    Manage clients and grow your business smarter.
+  </Typography>
+
+  {/* Floating & Animated Modern Icons */}
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "center",
+      gap: 8,
+      mt: 5,
+      flexWrap: "wrap",
+      position: "relative",
+    }}
+  >
+    {[
+      { icon: "💼", label: "Clients" },
+      { icon: "📊", label: "Analytics" },
+      { icon: "🔔", label: "Alerts" },
+      { icon: "☁️", label: "Cloud" },
+    ].map((item, index) => (
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, y: -30, scale: 0.7 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          delay: 0.4 + index * 0.2,
+          type: "spring",
+          stiffness: 130,
+        }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          cursor: "pointer",
+          position: "relative",
+        }}
+        whileHover={{ scale: 1.3 }}
+      >
+
+        
+        {/* Icon with glowing gradient background */}
+        <Box
+          sx={{
+            width: 80,
+            height: 80,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "radial-gradient(circle, #90caf9, #0d47a1)",
+            boxShadow: "0 0 20px rgba(144, 202, 249, 0.7)",
+            mb: 1,
+          }}
+        >
+          <Typography sx={{ fontSize: "2.5rem" }}>{item.icon}</Typography>
+        </Box>
+        <Typography
+          sx={{
+            fontSize: "0.9rem",
+            color: "#fff",
+            fontWeight: 500,
+            textShadow: "0 0 6px rgba(0,0,0,0.4)",
+          }}
+        >
+          {item.label}
+        </Typography>
+      </motion.div>
+    ))}
+  </Box>
+
+  {/* Subtle Gradient Blur Effect */}
+  <Box
+    sx={{
+      position: "absolute",
+      bottom: "-15%",
+      width: "70%",
+      height: "50%",
+      background:
+        "radial-gradient(circle at center, rgba(144,202,249,0.25), transparent 70%)",
+      filter: "blur(20px)",
+      zIndex: 0,
+      left: "50%",
+      transform: "translateX(-50%)",
+    }}
+  />
+</Box>
+
+
+  {/* Subtle Glow Effect */}
+  <Box
+    sx={{
+      position: "absolute",
+      bottom: "-20%",
+      width: "60%",
+      height: "40%",
+      background:
+        "radial-gradient(circle at center, rgba(193, 74, 249, 0.25), transparent 70%)",
+      filter: "blur(10px)",
+      zIndex: 0,
+    }}
+  />
+</Box>
+
+
         </Paper>
       </Fade>
 
@@ -585,7 +584,6 @@ const Register = () => {
         open={snackbarOpen}
         autoHideDuration={2500}
         onClose={() => setSnackbarOpen(false)}
-
       >
         <Alert severity="success">Account created successfully!</Alert>
       </Snackbar>

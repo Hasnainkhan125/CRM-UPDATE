@@ -356,7 +356,7 @@ const Login = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#0b0a0aff",
+        backgroundColor: "#ffffffff",
       }}
     >
       <Fade in timeout={800}>

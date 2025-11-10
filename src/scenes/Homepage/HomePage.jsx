@@ -1183,7 +1183,7 @@ useEffect(() => {
       >
         {/* Image */}
         <motion.img
-          src="/assets/admin.png"
+          src="/assets/hero_man.png.webp"
           alt="CRM Dashboard Preview"
           style={{
             width: "100%",
@@ -1199,8 +1199,8 @@ useEffect(() => {
             rotateX: -2,
             boxShadow:
               themeMode === "dark"
-                ? "0 30px 80px rgba(0,0,0,0.7), 0 0 120px rgba(168,85,247,0.5)"
-                : "0 20px 70px rgba(124,58,237,0.3)",
+                ? "0 30px 80px rgba(0,0,0,0.7), 0 0 120px rgba(169, 85, 247, 0.32)"
+                : "0 20px 70px rgba(124, 58, 237, 0.15)",
           }}
         />
 
@@ -1677,14 +1677,13 @@ useEffect(() => {
           {/* Phone image */}
           <Box
             component="img"
-            src="../../assets/admin.png"
+            src="../../assets/shope.png"
             alt="App Preview"
             sx={{
               width: "100%",
-              maxWidth: 250,
-              height: 300,
+              maxWidth: 350,
+              height: 400,
               borderRadius: 3,
-              mt: 3,
             }}
           />
         </Box>

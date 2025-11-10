@@ -1,231 +1,124 @@
-// src/scenes/userDashboard/UserProfile.jsx
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Avatar,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  IconButton,
-  Snackbar,
-  Alert,
-} from "@mui/material";
-import { PhotoCamera } from "@mui/icons-material";
-import { motion } from "framer-motion";
+import { Box, Typography, TextField, Button, Avatar, IconButton, Snackbar, Slide, Alert } from "@mui/material";
+import PhotoCamera from "@mui/icons-material/PhotoCamera";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 
-// Helper functions for localStorage
-const getUserData = () => {
-  const email = localStorage.getItem("loggedInEmail") || "apn@gmail.com";
-  const users = JSON.parse(localStorage.getItem("users")) || {};
-  return users[email] || { name: "John Doe", email, password: "apna", avatar: "" };
-};
+const UserProfile = () => {
+  const navigate = useNavigate(); // Hook for navigation
+  const [user, setUser] = useState({ name: "", email: "", avatar: "" });
+  const [preview, setPreview] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar state
 
-const saveUserData = (data) => {
-  const users = JSON.parse(localStorage.getItem("users")) || {};
-  users[data.email] = data;
-  localStorage.setItem("users", JSON.stringify(users));
-  localStorage.setItem("loggedInEmail", data.email);
-};
-
-const UserProfile = ({ onUpdateSidebar }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    avatar: "",
-  });
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-
+  // Load user from localStorage
   useEffect(() => {
-    const data = getUserData();
-    setFormData(data);
+    const storedUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+    setUser(storedUser);
+    setPreview(storedUser.avatar || "");
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // Handle input change
+  const handleChange = (e) => setUser({ ...user, [e.target.name]: e.target.value });
 
-const handleAvatarChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    const img = new Image();
-    img.src = reader.result;
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const maxSize = 200; // max width/height
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > maxSize) {
-          height *= maxSize / width;
-          width = maxSize;
-        }
-      } else {
-        if (height > maxSize) {
-          width *= maxSize / height;
-          height = maxSize;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7); // compress
-      setFormData({ ...formData, avatar: compressedDataUrl });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result);
+      setUser({ ...user, avatar: reader.result });
     };
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
+  
+
+  // Save user to localStorage and show snackbar
+const handleSave = () => {
+  localStorage.setItem("currentUser", JSON.stringify(user));
+  setSnackbarOpen(true);
+  window.dispatchEvent(new Event("profileUpdated")); // ✅ Notify topbar to update avatar
 };
 
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    saveUserData(formData);
-    setOpenSnackbar(true);
-    if (onUpdateSidebar) onUpdateSidebar(formData); // Update sidebar dynamically
-  };
+  // Slide animation for Snackbar
+  function SlideLeft(props) {
+    return <Slide {...props} direction="left" />;
+  }
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        color: "#000000ff",
-        background: "linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1))",
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+    <Box sx={{ p: 6, maxWidth: 600, mx: "auto" }}>
+      {/* Back Button */}
+      <IconButton
+        onClick={() => navigate(-1)}
+        sx={{ mb: 3, color: "#7e22ce", bgcolor: "#f0f0f0", "&:hover": { bgcolor: "#e0d4f7" } }}
       >
-        <Paper
-          elevation={6}
-          sx={{
-            p: 4,
-            width: "100%",
-            maxWidth: 500,
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
-            borderRadius: "16px",
-          }}
-        >
-          <Box textAlign="center" mb={3}>
-            <Box position="relative" display="inline-block">
-              <Avatar
-                src={
-                  formData.avatar ||
-                  "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                }
-                sx={{
-                  width: 90,
-                  height: 90,
-                  mx: "auto",
-                  mb: 2,
-                  border: "3px solid #FFD700",
-                }}
-              />
-              <IconButton
-                component="label"
-                sx={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: -6,
-                  backgroundColor: "#FFD700",
-                  "&:hover": { backgroundColor: "#FFC107" },
-                }}
-              >
-                <input
-                  hidden
-                  accept="image/*"
-                  type="file"
-                  onChange={handleAvatarChange}
-                />
-                <PhotoCamera sx={{ color: "#000" }} />
-              </IconButton>
-            </Box>
+        <ArrowBackIcon />
+        <Typography ml={1}>Back</Typography>
+      </IconButton>
 
-            <Typography variant="h5" fontWeight="bold">
-              Edit Profile
-            </Typography>
-            <Typography variant="body2" color="rgba(0, 0, 0, 0.6)">
-              Update your personal information below
-            </Typography>
-          </Box>
+      <Typography variant="h4" mb={3} fontWeight="bold" textAlign="center">
+        Your Profile
+      </Typography>
 
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="Full Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ style: { color: "#000000ff" } }}
-              InputProps={{ style: { color: "black" } }}
-            />
+      {/* Avatar + Upload */}
+      <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" mb={4}>
+        <Avatar
+          src={preview || ""}
+          sx={{ width: 120, height: 120, mb: 2, border: "2px solid #7e22ce" }}
+        />
+        <label htmlFor="avatar-upload">
+          <input
+            accept="image/*"
+            id="avatar-upload"
+            type="file"
+            style={{ display: "none" }}
+            onChange={handleImageUpload}
+          />
+          <Button variant="outlined" component="span" startIcon={<PhotoCamera />}>
+            Upload Photo
+          </Button>
+        </label>
+      </Box>
 
-            <TextField
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ style: { color: "#000000ff" } }}
-              InputProps={{ style: { color: "black" } }}
-            />
+      {/* Name & Email */}
+      <TextField
+        label="Name"
+        name="name"
+        fullWidth
+        sx={{ mb: 2 }}
+        value={user.name}
+        onChange={handleChange}
+      />
+      <TextField
+        label="Email"
+        name="email"
+        fullWidth
+        sx={{ mb: 2 }}
+        value={user.email}
+        onChange={handleChange}
+      />
 
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ style: { color: "#000000ff" } }}
-              InputProps={{ style: { color: "black" } }}
-            />
+      {/* Save Button */}
+      <Button
+        variant="contained"
+        fullWidth
+        sx={{ mt: 2, py: 1.5, fontSize: 16, fontWeight: "bold", background: "linear-gradient(90deg,#ff00cc,#3333ff)" }}
+        onClick={handleSave}
+      >
+        Save Profile
+      </Button>
 
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{
-                mt: 3,
-                backgroundColor: "#FFD700",
-                color: "#000",
-                fontWeight: "bold",
-                "&:hover": { backgroundColor: "#FFD700" },
-              }}
-            >
-              Save Changes
-            </Button>
-          </form>
-        </Paper>
-      </motion.div>
-
-      {/* ✅ Snackbar for save notification */}
+      {/* Success Snackbar */}
       <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        open={snackbarOpen}
+        autoHideDuration={2500}
+        onClose={() => setSnackbarOpen(false)}
+        TransitionComponent={SlideLeft}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Alert
-          onClose={() => setOpenSnackbar(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: "100%" }}>
           ✅ Profile updated successfully!
         </Alert>
       </Snackbar>
