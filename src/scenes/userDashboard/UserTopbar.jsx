@@ -18,6 +18,8 @@ import {
   ListItem,
   ListItemText,
   Divider,
+    Paper, // <-- add this line
+
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -37,6 +39,30 @@ const UserTopbar = () => {
   const [avatarUrl, setAvatarUrl] = useState(
     "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
   );
+
+
+  const [searchQuery, setSearchQuery] = useState("");
+const [showSuggestions, setShowSuggestions] = useState(false);
+
+// Example products array
+const productsList = [
+  { id: 1, name: "Apple iPhone 15" },
+  { id: 2, name: "Samsung Galaxy S23" },
+  { id: 3, name: "MacBook Pro 16" },
+  { id: 4, name: "Sony Headphones" },
+  { id: 5, name: "Nintendo Switch" },
+];
+
+// Filter products based on search
+const filteredProducts = productsList.filter((p) =>
+  p.name.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
+// At the top of your component
+const [shopMenuAnchor, setShopMenuAnchor] = useState(null);
+const shopMenuOpen = Boolean(shopMenuAnchor);
+
+
 
   const navigate = useNavigate();
 
@@ -140,48 +166,101 @@ const UserTopbar = () => {
     >
       ShopEase
     </Typography>
-{/* Navigation Links */}
+
+
 <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
-  <Button
-    variant="text"
-    sx={{ color: darkMode ? "#fff" : "#333", fontWeight: 600 }}
-    onClick={() => document.getElementById("dashboard")?.scrollIntoView({ behavior: "smooth" })}
-  >
-    Dashboard
-  </Button>
-  <Button
-    variant="text"
-    sx={{ color: darkMode ? "#fff" : "#333", fontWeight: 600 }}
-    onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}
-  >
-    About
-  </Button>
-  <Button
-    variant="text"
-    sx={{ color: darkMode ? "#fff" : "#333", fontWeight: 600 }}
-    onClick={() => document.getElementById("feature")?.scrollIntoView({ behavior: "smooth" })}
-  >
-    Feature
-  </Button>
-  <Button
-    variant="text"
-    sx={{ color: darkMode ? "#fff" : "#333", fontWeight: 600 }}
-    onClick={() => document.getElementById("merchants")?.scrollIntoView({ behavior: "smooth" })}
-  >
-    Merchants
-  </Button>
+  {[
+    { label: "Dashboard", id: "dashboard" },
+    { label: "About", id: "about" },
+    { label: "Feature", id: "feature" },
+    { label: "Merchants", id: "merchants" },
+    { label: "Shop", id: "shop", subLinks: ["Pants", "Shirts", "Glasses", "Shoes"] },
+    { label: "Contact", id: "contact" },
+  ].map((link) => {
+    // If link has subLinks (Shop)
+    if (link.subLinks) {
+      return (
 
-    <Button
-    variant="text"
-    sx={{ color: darkMode ? "#fff" : "#333", fontWeight: 600 }}
-    onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-  >
-    Contact
-  </Button>
+        <Box key={link.id} sx={{ position: "relative" }}>
+          <Button
+            variant="text"
+            onClick={(e) => setShopMenuAnchor(e.currentTarget)}
+            sx={{
+              color: darkMode ? "#fff" : "#333",
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: "0.95rem",
+              borderBottom: shopMenuOpen ? "2px solid #d32f2f" : "2px solid transparent",
+              transition: "border-bottom 0.3s ease",
+              "&:hover": { color: "#ff9500ff" },
+            }}
+          >
+            {link.label}
+          </Button>
+
+          <Menu
+            anchorEl={shopMenuAnchor}
+            open={shopMenuOpen}
+            onClose={() => setShopMenuAnchor(null)}
+            MenuListProps={{ onMouseLeave: () => setShopMenuAnchor(null) }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+          >
+            {link.subLinks.map((sub) => (
+              <MenuItem
+                key={sub}
+                onClick={() => {
+                  setShopMenuAnchor(null);
+                  console.log(`Clicked ${sub}`);
+                  // You can navigate or scroll here
+                }}
+              >
+                {sub}
+              </MenuItem>
+            ))}
+          </Menu>
+        </Box>
+      );
+    }
+
+    // Normal links
+    return (
+      <Button
+        key={link.id}
+        variant="text"
+        onClick={() =>
+          document.getElementById(link.id)?.scrollIntoView({ behavior: "smooth" })
+        }
+        sx={{
+          color: darkMode ? "#fff" : "#333",
+          position: "relative",
+          textTransform: "none",
+          fontSize: "0.95rem",
+          "&:hover": {
+            color: "#ff9500ff",
+            "&::after": { width: "100%" },
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            width: 0,
+            height: "2px",
+            bgcolor: "#ff9500ff",
+            transition: "width 0.3s ease",
+          },
+        }}
+      >
+        {link.label}
+      </Button>
+    );
+  })}
 </Box>
 </Box>
 
-  {/* CENTER: Search */}
+ {/* CENTER: Search */}
+<Box sx={{ position: "relative", width: { xs: "60%", md: "30%" } }}>
   <Box
     display="flex"
     alignItems="center"
@@ -190,16 +269,86 @@ const UserTopbar = () => {
       px: 2,
       py: 0.7,
       borderRadius: "25px",
-      width: { xs: "40%", md: "30%" },
+      width: "100%",
       "&:focus-within": { boxShadow: "0 0 0 2px #7e22ce" },
+      cursor: "text",
     }}
   >
     <SearchIcon sx={{ color: "#7e22ce", mr: 1 }} />
     <InputBase
       placeholder="Search for products..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      onFocus={() => setShowSuggestions(true)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          const featureSection = document.getElementById("feature");
+          if (featureSection) {
+            featureSection.scrollIntoView({ behavior: "smooth" });
+            setShowSuggestions(false);
+          }
+        }
+      }}
       sx={{ color: darkMode ? "#fff" : "#333", width: "100%" }}
     />
   </Box>
+
+  {showSuggestions && searchQuery && (
+    <Paper
+      elevation={4}
+      sx={{
+        position: "absolute",
+        top: "100%",
+        left: 0,
+        right: 0,
+        mt: 1,
+        maxHeight: 250,
+        overflowY: "auto",
+        borderRadius: 2,
+        bgcolor: darkMode ? "#222" : "#fff",
+        zIndex: 1500,
+        borderTop: "3px solid #d32f2f", // red line
+        boxShadow: darkMode
+          ? "0 4px 12px rgba(0,0,0,0.6)"
+          : "0 4px 12px rgba(0,0,0,0.2)",
+      }}
+    >
+      {filteredProducts.length > 0 ? (
+        filteredProducts.map((product) => (
+          <Box
+            key={product.id}
+            sx={{
+              px: 2,
+              py: 1,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: darkMode
+                  ? "rgba(255,255,255,0.05)"
+                  : "#f0f0f0",
+              },
+            }}
+            onClick={() => {
+              setSearchQuery(product.name);
+              setShowSuggestions(false);
+
+              // Scroll to Features section on click
+              const featureSection = document.getElementById("feature");
+              if (featureSection) {
+                featureSection.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+          >
+            {product.name}
+          </Box>
+        ))
+      ) : (
+        <Box sx={{ px: 2, py: 1, color: "#777" }}>No products found.</Box>
+      )}
+    </Paper>
+  )}
+</Box>
+
+
 
   {/* RIGHT: Icons */}
   <Box display="flex" alignItems="center" gap={2}>

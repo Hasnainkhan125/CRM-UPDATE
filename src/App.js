@@ -33,15 +33,16 @@ import AIDashboard from "./scenes/aiDashboard/aidashboard";
 import UserDashboardLayout from "./scenes/userDashboard/UserDashboardLayout";
 import UserDashboardHome from "./scenes/userDashboard/UserDashboardHome";
 import UserProfile from "./scenes/userDashboard/Userprofile";
-import CheckoutForm from "./scenes/userDashboard/CheckoutForm"; // new checkout page
+import CheckoutForm from "./scenes/userDashboard/CheckoutForm";
+import ShopPage from "./scenes/userDashboard/ShopPage";
+import ProductDetails from "./scenes/userDashboard/ProductDetails"; // ✅ NEW PAGE
 
-// 🔹 Homepage Import
+// 🔹 Homepage
 import HomePage from "./scenes/Homepage/HomePage";
 
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
-
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
 
   useEffect(() => {
@@ -63,7 +64,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* User Dashboard */}
+            {/* 🛍️ User Dashboard */}
             <Route
               path="/user-dashboard/*"
               element={
@@ -74,10 +75,12 @@ function App() {
             >
               <Route index element={<UserDashboardHome />} />
               <Route path="profile" element={<UserProfile />} />
-              <Route path="checkout" element={<CheckoutForm />} /> {/* ✅ relative path */}
+              <Route path="checkout" element={<CheckoutForm />} />
+              <Route path="shop" element={<ShopPage />} />
+              <Route path="product/:id" element={<ProductDetails />} />
             </Route>
 
-            {/* Admin Dashboard */}
+            {/* 🧑‍💼 Admin Dashboard */}
             <Route
               path="/admin-dashboard"
               element={
@@ -93,7 +96,7 @@ function App() {
               }
             />
 
-            {/* Admin Panel Nested Routes */}
+            {/* Admin Nested Routes */}
             <Route
               path="/admin/*"
               element={
