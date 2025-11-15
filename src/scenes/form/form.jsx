@@ -12,15 +12,11 @@ import {
   CardActions,
   Divider,
   useTheme,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   useMediaQuery,
 } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Header from "../../components/Header";
 
 const AdminProductForm = () => {
@@ -32,8 +28,6 @@ const AdminProductForm = () => {
   const [addSuccess, setAddSuccess] = useState(false);
   const [preview, setPreview] = useState(null);
   const [showForm, setShowForm] = useState(false);
-
-  const editFormikRef = useRef(null);
 
   useEffect(() => {
     const savedProducts = JSON.parse(localStorage.getItem("products")) || [];
@@ -63,7 +57,7 @@ const AdminProductForm = () => {
       setPreview(null);
       setLoading(false);
       setAddSuccess(true);
-      setShowForm(false); // hide form after submit
+      setShowForm(false);
     }, 800);
   };
 

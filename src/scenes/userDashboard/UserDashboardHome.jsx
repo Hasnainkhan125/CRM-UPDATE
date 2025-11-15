@@ -175,36 +175,38 @@ const [addSuccess, setAddSuccess] = useState(false);
             bgcolor: "#fff",
           }}
         >
-          {/* Right Orange Diagonal Background */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "70%",
-              height: "90%",
-              background: "linear-gradient(135deg, #ff6a00, #ff9900)",
-              clipPath: "polygon(30% 0, 100% 0, 100% 100%, 0 100%)",
-              zIndex: 1,
-            }}
-          />
+{/* Right Side - Modern Neon Diagonal Background */}
+<Box
+  sx={{
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "70%",
+    height: "90%",
+    background: "linear-gradient(135deg, #12002f, #140028, #1a0035)", // dark neon gradient
+    clipPath: "polygon(30% 0, 100% 0, 100% 100%, 0 100%)",
+    zIndex: 1,
+  }}
+/>
 
-          {/* White Diagonal Accent Stripes */}
-          {[0, 1].map((i) => (
-            <Box
-              key={i}
-              sx={{
-                position: "absolute",
-                top: `${10 + i * 20}%`,
-                right: 0,
-                width: "75%",
-                height: "8%",
-                background: "rgba(255,255,255,0.9)",
-                clipPath: "polygon(35% 0, 100% 0, 100% 100%, 0 100%)",
-                zIndex: 2,
-              }}
-            />
-          ))}
+{/* Neon Accent Stripes */}
+{[0, 1].map((i) => (
+  <Box
+    key={i}
+    sx={{
+      position: "absolute",
+      top: `${10 + i * 20}%`,
+      right: 0,
+      width: "75%",
+      height: "8%",
+      background: "rgba(0,255,204,0.15)", // subtle neon glow
+      clipPath: "polygon(35% 0, 100% 0, 100% 100%, 0 100%)",
+      zIndex: 2,
+      filter: "blur(4px)", // soft glow effect
+      transform: `rotate(${i % 2 === 0 ? 1 : -1}deg)`, // slight tilt for dynamism
+    }}
+  />
+))}
 
           {/* Left Text Section */}
           <Box

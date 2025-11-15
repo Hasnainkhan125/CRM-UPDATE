@@ -60,6 +60,11 @@ const Topbar = ({ user }) => {
     navigate("/admin/profile");
   };
 
+  const handleSettingsPage = () => {
+    handleProfileClose();
+    navigate("/admin/settings"); // ✅ Navigate to settings
+  };
+
   // Profile picture
   const [profilePic, setProfilePic] = useState(user?.dp || "../../assets/user.png");
 
@@ -97,20 +102,18 @@ const Topbar = ({ user }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [loadingNav, setLoadingNav] = useState(false);
 
-  // searchMap stores the path values
   const searchMap = useMemo(
     () => ({
       dashboard: "/dashboard",
       "manage team": "/team",
       "contact information": "/contacts",
       invoices: "/invoices",
-      profile: "/profile", // must match actual route
+      profile: "/profile",
       settings: "/settings",
     }),
     []
   );
 
-  // Generate suggestions based on searchText
   useEffect(() => {
     if (!searchText.trim()) {
       setSuggestions([]);
@@ -123,7 +126,6 @@ const Topbar = ({ user }) => {
     setSuggestions(matches);
   }, [searchText, searchMap]);
 
-  // Handle selection of a suggestion
   const handleSelectSuggestion = (key) => {
     if (!key) return;
     setLoadingNav(true);
@@ -132,10 +134,9 @@ const Topbar = ({ user }) => {
     setTimeout(() => {
       setLoadingNav(false);
       navigate(searchMap[key]);
-    }, 300); // quick navigation
+    }, 300);
   };
 
-  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && suggestions.length > 0) {
       handleSelectSuggestion(suggestions[0]);
@@ -178,7 +179,7 @@ const Topbar = ({ user }) => {
         >
           <Box
             component="img"
-            src="/assets/loading-logo.png"
+            src="/assets/logo/logo1.png"
             alt="Loading Logo"
             sx={{
               width: 120,
@@ -191,13 +192,13 @@ const Topbar = ({ user }) => {
           <Typography
             variant="h2"
             fontWeight="bold"
-            sx={{ color: "#000000ff", fontFamily: "Poppins, sans-serif", mb: 3, textAlign: "center" }}
+            sx={{ color: "#000", fontFamily: "Poppins, sans-serif", mb: 3, textAlign: "center" }}
           >
             Loading...
           </Typography>
           <Typography
             sx={{
-              color: "#888787ff",
+              color: "#888",
               fontSize: "0.95rem",
               fontWeight: 700,
               fontFamily: "Poppins, sans-serif",
@@ -322,7 +323,7 @@ const Topbar = ({ user }) => {
           <MenuItem onClick={handleProfilePage}>
             <PersonOutlineIcon sx={{ mr: 1 }} /> Profile
           </MenuItem>
-          <MenuItem onClick={handleProfileClose}>
+          <MenuItem onClick={handleSettingsPage}> {/* ✅ Navigate to settings */}
             <SettingsOutlinedIcon sx={{ mr: 1 }} /> Settings
           </MenuItem>
           <MenuItem

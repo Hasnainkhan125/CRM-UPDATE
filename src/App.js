@@ -22,9 +22,7 @@ import FAQ from "./scenes/faq";
 import Geography from "./scenes/geography";
 import Calendar from "./scenes/calendar/calendar";
 import Profile from "./scenes/profile/profile";
-import Login from "./scenes/login/Login";
-import ForgotPassword from "./scenes/login/ForgotPassword";
-import Register from "./scenes/register/Register";
+import Setting from "./scenes/profile/setting";
 import AdminSecurity from "./scenes/adminSecurity/adminSecurity";
 import Form from "./scenes/form/form";
 import AIDashboard from "./scenes/aiDashboard/aidashboard";
@@ -35,9 +33,12 @@ import UserDashboardHome from "./scenes/userDashboard/UserDashboardHome";
 import UserProfile from "./scenes/userDashboard/Userprofile";
 import CheckoutForm from "./scenes/userDashboard/CheckoutForm";
 import ShopPage from "./scenes/userDashboard/ShopPage";
-import ProductDetails from "./scenes/userDashboard/ProductDetails"; // ✅ NEW PAGE
+import ProductDetails from "./scenes/userDashboard/ProductDetails";
 
-// 🔹 Homepage
+// 🔹 Auth & Homepage
+import Login from "./scenes/login/Login";
+import ForgotPassword from "./scenes/login/ForgotPassword";
+import Register from "./scenes/register/Register";
 import HomePage from "./scenes/Homepage/HomePage";
 
 function App() {
@@ -56,19 +57,17 @@ function App() {
         <CssBaseline />
         <NotificationProvider>
           <Routes>
-            {/* Homepage */}
+            {/* 🌍 Public Routes */}
             <Route path="/" element={<HomePage />} />
-
-            {/* Auth */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* 🛍️ User Dashboard */}
+            {/* 🛍️ USER DASHBOARD */}
             <Route
               path="/user-dashboard/*"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute roles={["user", "admin"]}>
                   <UserDashboardLayout />
                 </ProtectedRoute>
               }
@@ -80,11 +79,11 @@ function App() {
               <Route path="product/:id" element={<ProductDetails />} />
             </Route>
 
-            {/* 🧑‍💼 Admin Dashboard */}
+            {/* 🧑‍💼 ADMIN DASHBOARD */}
             <Route
               path="/admin-dashboard"
               element={
-                <ProtectedRoute adminOnly>
+                <ProtectedRoute roles={["admin"]}>
                   <div className="app">
                     <Sidebar isSidebar={isSidebar} />
                     <main className="content">
@@ -96,11 +95,11 @@ function App() {
               }
             />
 
-            {/* Admin Nested Routes */}
+            {/* 🔸 ADMIN NESTED ROUTES */}
             <Route
               path="/admin/*"
               element={
-                <ProtectedRoute adminOnly>
+                <ProtectedRoute roles={["admin"]}>
                   <div className="app">
                     <Sidebar isSidebar={isSidebar} />
                     <main className="content">
@@ -126,12 +125,13 @@ function App() {
               <Route path="calendar" element={<Calendar />} />
               <Route path="geography" element={<Geography />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Setting />} />
               <Route path="admin-security" element={<AdminSecurity />} />
               <Route path="ai-dashboard" element={<AIDashboard />} />
               <Route path="*" element={<Navigate to="/admin/dashboard" />} />
             </Route>
 
-            {/* Catch-all */}
+            {/* ⚠️ Catch-all */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </NotificationProvider>

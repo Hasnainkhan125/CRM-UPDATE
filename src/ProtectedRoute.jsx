@@ -1,21 +1,27 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+const ProtectedRoute = ({ children, roles = [] }) => {
   const loggedIn = localStorage.getItem("loggedIn") === "true";
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
 
+  // 🔹 Not logged in → go to login
   if (!loggedIn) {
-    // ❌ Not logged in → redirect to login page
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && currentUser.email !== "admin@gmail.com") {
-    // ❌ Logged in but not admin → redirect to user dashboard
+  // 🔹 If no role info, assume "user"
+  const userRole = currentUser.role || (currentUser.email === "admin@gmail.com" ? "admin" : "user");
+
+  // 🔹 Role-based access control
+  if (roles.length > 0 && !roles.includes(userRole)) {
+    if (userRole === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
     return <Navigate to="/user-dashboard" replace />;
   }
 
-  // ✅ Allowed → render the protected page
+  // ✅ Access granted
   return children;
 };
 

@@ -6,20 +6,21 @@ import {
   Button,
   Divider,
   Paper,
-  CircularProgress, 
+  CircularProgress,
   Grid,
   Card,
   CardActionArea,
   CardMedia,
   Stack,
   IconButton,
-  FormControlLabel,
-  Checkbox
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
-
 
 const CheckoutForm = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const CheckoutForm = () => {
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CashOnDelivery");
+  const [showJazzCashPopup, setShowJazzCashPopup] = useState(false);
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -77,7 +79,12 @@ const CheckoutForm = () => {
       localStorage.removeItem("cart");
       window.dispatchEvent(new Event("cartUpdated"));
       setLoading(false);
-      setOrderPlaced(true);
+
+      if (paymentMethod === "JazzCash") {
+        setShowJazzCashPopup(true); // show popup for JazzCash
+      } else {
+        setOrderPlaced(true); // COD / Visa / PayPal
+      }
     }, 2000);
   };
 
@@ -179,10 +186,7 @@ const CheckoutForm = () => {
               fullWidth
               value={giftMessage}
               onChange={(e) => setGiftMessage(e.target.value)}
-              sx={{
-                mb: 3,
-                "& .MuiInputBase-root": { borderRadius: 2, bgcolor: "#f5f5f5" },
-              }}
+              sx={{ mb: 3, "& .MuiInputBase-root": { borderRadius: 2, bgcolor: "#f5f5f5" } }}
             />
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -201,12 +205,7 @@ const CheckoutForm = () => {
                     fullWidth
                     value={field.value}
                     onChange={(e) => field.setValue(e.target.value)}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        borderRadius: 2,
-                        bgcolor: "#f5f5f5",
-                      },
-                    }}
+                    sx={{ "& .MuiInputBase-root": { borderRadius: 2, bgcolor: "#f5f5f5" } }}
                   />
                 </Grid>
               ))}
@@ -243,15 +242,10 @@ const CheckoutForm = () => {
                   <Card
                     sx={{
                       border:
-                        paymentMethod === method.key
-                          ? "2px solid #764ba2"
-                          : "1px solid #ddd",
+                        paymentMethod === method.key ? "2px solid #764ba2" : "1px solid #ddd",
                       borderRadius: 3,
                       transition: "0.3s",
-                      boxShadow:
-                        paymentMethod === method.key
-                          ? "0 0 10px rgba(118,75,162,0.3)"
-                          : "none",
+                      boxShadow: paymentMethod === method.key ? "0 0 10px rgba(118,75,162,0.3)" : "none",
                       "&:hover": {
                         transform: "scale(1.05)",
                         boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
@@ -303,6 +297,16 @@ const CheckoutForm = () => {
               </>
             )}
 
+            {paymentMethod === "JazzCash" && (
+              <TextField
+                label="JazzCash Mobile Number"
+                fullWidth
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                sx={{ mb: 3, "& .MuiInputBase-root": { bgcolor: "#f5f5f5" } }}
+              />
+            )}
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
               <Button
                 variant="outlined"
@@ -329,11 +333,7 @@ const CheckoutForm = () => {
                 }}
                 disabled={loading}
               >
-                {loading ? (
-                  <CircularProgress size={24} sx={{ color: "#fff" }} />
-                ) : (
-                  "Place Order"
-                )}
+                {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Place Order"}
               </Button>
             </Stack>
           </Paper>
@@ -384,20 +384,12 @@ const CheckoutForm = () => {
                       <img
                         src={item.img}
                         alt={item.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
+                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
                       />
                     </Box>
                     <Box sx={{ flex: 1, px: 2 }}>
-                      <Typography sx={{ fontWeight: 600 }}>
-                        {item.name}
-                      </Typography>
-                      <Typography sx={{ color: "#666", fontSize: 13 }}>
-                        Qty: {item.quantity || 1}
-                      </Typography>
+                      <Typography sx={{ fontWeight: 600 }}>{item.name}</Typography>
+                      <Typography sx={{ color: "#666", fontSize: 13 }}>Qty: {item.quantity || 1}</Typography>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography sx={{ fontWeight: 700, color: "#2e7d32" }}>
@@ -425,10 +417,7 @@ const CheckoutForm = () => {
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                 <Typography>Subtotal:</Typography>
                 <Typography sx={{ fontWeight: 600 }}>
-                  $
-                  {cartItems
-                    .reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 1), 0)
-                    .toFixed(2)}
+                  ${cartItems.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 1), 0).toFixed(2)}
                 </Typography>
               </Box>
 
@@ -456,21 +445,41 @@ const CheckoutForm = () => {
                     borderRadius: 2,
                   }}
                 >
-                  $
-                  {(
-                    cartItems.reduce(
-                      (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
-                      0
-                    ) +
-                    5 -
-                    10
-                  ).toFixed(2)}
+                  ${(cartItems.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 1), 0) + 5 - 10).toFixed(2)}
                 </Typography>
               </Box>
             </Box>
           </Paper>
         </Box>
       </Box>
+
+      {/* JazzCash Popup */}
+      <Dialog
+        open={showJazzCashPopup}
+        onClose={() => setShowJazzCashPopup(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ textAlign: "center", fontWeight: 700 }}>JazzCash Payment</DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          <Typography sx={{ mb: 2 }}>Your order has been submitted!</Typography>
+          <Typography sx={{ mb: 1 }}>Please pay via <strong>JazzCash</strong> to:</Typography>
+          <Typography sx={{ fontWeight: 700, color: "#007bff", mb: 2 }}>0314-0972575</Typography>
+          <Typography sx={{ fontSize: 14, color: "#555" }}>Use your order details as reference.</Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setShowJazzCashPopup(false);
+              setOrderPlaced(true);
+            }}
+            sx={{ background: "linear-gradient(90deg,#667eea,#764ba2)" }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
