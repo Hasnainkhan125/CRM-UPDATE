@@ -118,10 +118,9 @@ const Register = () => {
       speak("Account created successfully.");
 
       setTimeout(() => navigate("/login"), 4500);
-    }, 4500);
+    }, 2000);
   };
 
-  // 🔹 Modern Field Styles (reused for all fields)
   const modernFieldStyle = {
     "& .MuiOutlinedInput-root": {
       borderRadius: "12px",
@@ -135,23 +134,28 @@ const Register = () => {
         borderColor: "#000",
         boxShadow: "0 0 8px rgba(0,0,0,0.25)",
       },
+      height: { xs: 40, sm: 48, md: 55 },
     },
-    "& .MuiInputLabel-root": { color: "#333", fontWeight: 500 },
+    "& .MuiInputLabel-root": {
+      color: "#333",
+      fontWeight: 500,
+      fontSize: { xs: "0.8rem", sm: "0.9rem", md: "1rem" },
+    },
     "& .MuiInputLabel-root.Mui-focused": { color: "#000" },
+    "& input": { fontSize: { xs: "0.8rem", sm: "0.9rem", md: "1rem" } },
   };
-
-  // 🔹 Loader Screen
   if (showLoader) {
     return (
       <Box
         sx={{
           minHeight: "100vh",
           display: "flex",
+          
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "#000000",
-          gap: 4,
+          background: "#0a0027ff",
+          gap: 2,
         }}
       >
         <Box
@@ -184,44 +188,22 @@ const Register = () => {
                 borderRadius: "10px",
                 transformOrigin: "center 36px",
                 transform: `rotate(${i * 30}deg)`,
-                boxShadow: "0 0 6px rgba(255, 255, 255, 0.6)",
               }}
             />
           ))}
         </Box>
 
-        <motion.div
-          animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-        >
+        <motion.div animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography
-              sx={{
-                fontSize: "1.4rem",
-                fontWeight: 600,
-                color: "#f5f5f5",
-                letterSpacing: "0.5px",
-                fontFamily:
-                  "SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif",
-              }}
-            >
+            <Typography sx={{ fontSize: "1.4rem", fontWeight: 600, color: "#f5f5f5" }}>
               Loading
             </Typography>
             {[...Array(3)].map((_, i) => (
               <motion.span
                 key={i}
                 animate={{ opacity: [0, 1, 0] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 1.2,
-                  delay: i * 0.3,
-                  ease: "easeInOut",
-                }}
-                style={{
-                  fontSize: "1.4rem",
-                  fontWeight: 600,
-                  color: "#f5f5f5",
-                }}
+                transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.3 }}
+                style={{ fontSize: "1.4rem", fontWeight: 600, color: "#f5f5f5" }}
               >
                 .
               </motion.span>
@@ -229,20 +211,8 @@ const Register = () => {
           </Box>
         </motion.div>
 
-        <motion.div
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ repeat: Infinity, duration: 2.4 }}
-        >
-          <Typography
-            sx={{
-              fontSize: "0.95rem",
-              color: "#888",
-              mt: 2,
-              fontStyle: "italic",
-              fontFamily:
-                "SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
-            }}
-          >
+        <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 2.4 }}>
+          <Typography sx={{ fontSize: "0.95rem", color: "#888", mt: 2, fontStyle: "italic" }}>
             Preparing your Registration form...
           </Typography>
         </motion.div>
@@ -250,7 +220,6 @@ const Register = () => {
     );
   }
 
-  // 🔹 Main UI
   return (
     <Box
       sx={{
@@ -259,7 +228,7 @@ const Register = () => {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#f5f5f7",
-        p: 2,
+        p: { xs: 1, sm: 2 },
       }}
     >
       <Fade in timeout={1200}>
@@ -278,17 +247,22 @@ const Register = () => {
           <Box
             sx={{
               flex: 1,
-              p: { xs: 4, md: 6 },
+              p: { xs: 3, sm: 4, md: 6 },
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              gap: 2,
+              gap: { xs: 1.5, sm: 2, md: 2.5 },
             }}
           >
             <Typography
               variant="h5"
               fontWeight={700}
-              sx={{ color: "#000", mb: 2, textAlign: "center" }}
+              sx={{
+                color: "#000",
+                mb: { xs: 1.5, sm: 2 },
+                textAlign: "center",
+                fontSize: { xs: "1.2rem", sm: "1.5rem", md: "1.75rem" },
+              }}
             >
               {!isVerified ? "Admin Verification" : "Create Your Account"}
             </Typography>
@@ -310,11 +284,13 @@ const Register = () => {
                   onClick={handleCodeVerify}
                   variant="contained"
                   sx={{
-                    py: 1.2,
+                    py: { xs: 0.8, sm: 1.2 },
                     fontWeight: "bold",
+                    fontSize: { xs: "0.8rem", sm: "0.95rem", md: "1rem" },
                     backgroundColor: "black",
                     "&:hover": { backgroundColor: "#333" },
                   }}
+                  fullWidth
                 >
                   Verify
                 </Button>
@@ -343,11 +319,14 @@ const Register = () => {
                         endAdornment:
                           field.includes("password") ? (
                             <InputAdornment position="end">
-                              <IconButton onClick={() => setShowPassword(!showPassword)}>
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                sx={{ p: { xs: 0.3, sm: 0.5 } }}
+                              >
                                 {showPassword ? (
-                                  <VisibilityOff sx={{ color: "black" }} />
+                                  <VisibilityOff sx={{ fontSize: { xs: 18, sm: 20 } }} />
                                 ) : (
-                                  <Visibility sx={{ color: "black" }} />
+                                  <Visibility sx={{ fontSize: { xs: 18, sm: 20 } }} />
                                 )}
                               </IconButton>
                             </InputAdornment>
@@ -358,34 +337,32 @@ const Register = () => {
                   )
                 )}
 
-<Button
-  variant="contained"
-  fullWidth
-  onClick={handleSubmit}
-  disabled={loading}
-  sx={{
-    py: 1.5,
-    fontWeight: "bold",
-    mt: 1,
-    backgroundColor: loading ? "#555" : "black",
-    color: loading ? "#79c0f9ff" : "#fff",
-    "&:hover": {
-      backgroundColor: loading ? "#666" : "#333",
-    },
-  }}
->
-  {loading ? (
-    <CircularProgress
-      size={22}
-      sx={{
-        color: "#90caf9", // spinner color when loading
-      }}
-    />
-  ) : (
-    "Register"
-  )}
-</Button>
-
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  sx={{
+                    py: { xs: 0.9, sm: 1.2, md: 1.5 },
+                    fontWeight: "bold",
+                    mt: 1,
+                    fontSize: { xs: "0.8rem", sm: "0.95rem", md: "1rem" },
+                    backgroundColor: loading ? "#555" : "black",
+                    color: loading ? "#79c0f9ff" : "#fff",
+                    "&:hover": {
+                      backgroundColor: loading ? "#666" : "#333",
+                    },
+                  }}
+                >
+                  {loading ? (
+                    <CircularProgress
+                      size={{ xs: 18, sm: 22, md: 24 }}
+                      sx={{ color: "#90caf9" }}
+                    />
+                  ) : (
+                    "Register"
+                  )}
+                </Button>
               </>
             )}
 
@@ -394,6 +371,7 @@ const Register = () => {
                 onClick={() => navigate("/login")}
                 sx={{
                   textTransform: "none",
+                  fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.9rem" },
                   color: "black",
                   "&:hover": { textDecoration: "underline" },
                 }}
@@ -402,180 +380,6 @@ const Register = () => {
               </Button>
             </Typography>
           </Box>
-
-       {/* Right Section — Visual */}
-<Box
-  sx={{
-    flex: 1,
-    backgroundImage: `url("/assets/auth/back3.jpg")`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    position: "relative",
-    display: { xs: "none", md: "flex" },
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-    textAlign: "center",
-    p: 4,
-    overflow: "hidden",
-  }}
->
-  {/* Gradient + Blur Layer */}
-  <Box
-    sx={{
-      position: "absolute",
-      inset: 0,
-      background: "linear-gradient(135deg, rgba(55,0,255,0.45), rgba(0,0,0,0.6))",
-      backdropFilter: "blur(8px)",
-      WebkitBackdropFilter: "blur(8px)",
-      zIndex: 0,
-    }}
-  />
-
-{/* Content */}
-<Box sx={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-  {/* Logo */}
-  <motion.img
-    src="/assets/loading-logo.png"
-    alt="Logo"
-    style={{
-      width: 320,
-      marginBottom: 24,
-      filter: "drop-shadow(0 0 20px rgba(0,0,0,0.5))",
-    }}
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 1 }}
-  />
-
-  {/* Main Title */}
-  <Typography
-    variant="h1"
-    fontWeight={800}
-    sx={{
-      color: "#fff",
-      textShadow: "0 0 20px rgba(0,0,0,0.5)",
-      mb: 1,
-    }}
-  >
-    Welcome to <span style={{ color: "#90caf9" }}>PAK CRM</span>
-  </Typography>
-
-  {/* Subtitle */}
-  <Typography
-    variant="body1"
-    sx={{
-      color: "rgba(255,255,255,0.85)",
-      mt: 1.5,
-      fontSize: "0.9rem",
-      fontWeight: 400,
-    }}
-  >
-    Manage clients and grow your business smarter.
-  </Typography>
-
-  {/* Floating & Animated Modern Icons */}
-  <Box
-    sx={{
-      display: "flex",
-      justifyContent: "center",
-      gap: 8,
-      mt: 5,
-      flexWrap: "wrap",
-      position: "relative",
-    }}
-  >
-    {[
-      { icon: "💼", label: "Clients" },
-      { icon: "📊", label: "Analytics" },
-      { icon: "🔔", label: "Alerts" },
-      { icon: "☁️", label: "Cloud" },
-    ].map((item, index) => (
-      <motion.div
-        key={index}
-        initial={{ opacity: 0, y: -30, scale: 0.7 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{
-          delay: 0.4 + index * 0.2,
-          type: "spring",
-          stiffness: 130,
-        }}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          cursor: "pointer",
-          position: "relative",
-        }}
-        whileHover={{ scale: 1.3 }}
-      >
-
-        
-        {/* Icon with glowing gradient background */}
-        <Box
-          sx={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "radial-gradient(circle, #90caf9, #0d47a1)",
-            boxShadow: "0 0 20px rgba(144, 202, 249, 0.7)",
-            mb: 1,
-          }}
-        >
-          <Typography sx={{ fontSize: "2.5rem" }}>{item.icon}</Typography>
-        </Box>
-        <Typography
-          sx={{
-            fontSize: "0.9rem",
-            color: "#fff",
-            fontWeight: 500,
-            textShadow: "0 0 6px rgba(0,0,0,0.4)",
-          }}
-        >
-          {item.label}
-        </Typography>
-      </motion.div>
-    ))}
-  </Box>
-
-  {/* Subtle Gradient Blur Effect */}
-  <Box
-    sx={{
-      position: "absolute",
-      bottom: "-15%",
-      width: "70%",
-      height: "50%",
-      background:
-        "radial-gradient(circle at center, rgba(144,202,249,0.25), transparent 70%)",
-      filter: "blur(20px)",
-      zIndex: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-    }}
-  />
-</Box>
-
-
-  {/* Subtle Glow Effect */}
-  <Box
-    sx={{
-      position: "absolute",
-      bottom: "-20%",
-      width: "60%",
-      height: "40%",
-      background:
-        "radial-gradient(circle at center, rgba(193, 74, 249, 0.25), transparent 70%)",
-      filter: "blur(10px)",
-      zIndex: 0,
-    }}
-  />
-</Box>
-
-
         </Paper>
       </Fade>
 

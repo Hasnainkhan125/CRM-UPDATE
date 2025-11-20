@@ -13,6 +13,7 @@ import {
   IconButton,
   Slide,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,6 +24,9 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 const AddInvoice = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   const [open, setOpen] = useState(true);
   const [form, setForm] = useState({
     name: "",
@@ -41,7 +45,6 @@ const AddInvoice = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Save invoice to localStorage
   const handleSave = () => {
     if (!form.name || !form.phone || !form.email || !form.cost || !form.date) {
       alert("Please fill all required fields!");
@@ -54,26 +57,19 @@ const AddInvoice = () => {
       const totalCost =
         parseFloat(form.cost) + (form.agencyFee ? parseFloat(form.agencyFee) : 0);
 
-      // Get existing invoices
       const storedInvoices = JSON.parse(localStorage.getItem("invoices")) || [];
-
-      // Create a new invoice object
       const newInvoice = {
-        _id: Date.now().toString(), // simple unique id
+        _id: Date.now().toString(),
         ...form,
         totalCost,
       };
 
-      // Add new invoice to the array
       const updatedInvoices = [...storedInvoices, newInvoice];
-
-      // Save back to localStorage
       localStorage.setItem("invoices", JSON.stringify(updatedInvoices));
 
       setLoading(false);
       setSuccess(true);
 
-      // Redirect to invoices list after success
       setTimeout(() => navigate("/admin/invoices"), 1200);
     }, 800);
   };
@@ -97,50 +93,54 @@ const AddInvoice = () => {
           display: "flex",
           flexDirection: "column",
           height: "100%",
+            bgcolor: theme.palette.mode === "dark" ? "#000000ff" : "#fff",
         },
       }}
     >
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="h4">Add New Invoice</Typography>
-        <IconButton onClick={handleClose}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mt={3} mb={6}>
+        <Typography variant="h4" color={isDark ? "#fff" : "#000"}>
+          Add New Invoice
+        </Typography>
+        <IconButton onClick={handleClose} sx={{ color: isDark ? "#fff" : "#000" }}>
           <CloseIcon />
         </IconButton>
       </Box>
 
-      <Divider sx={{ mb: 2 }} />
 
       <Box flexGrow={1} overflow="auto">
         <Grid container spacing={2}>
-          {["name", "phone", "email", "cost", "agencyFee", "date"].map(
-            (field) => (
-              <Grid item xs={field === "email" ? 12 : 6} key={field}>
-                <TextField
-                  name={field}
-                  label={
-                    field === "agencyFee"
-                      ? "Agency Fee (Optional)"
-                      : field.charAt(0).toUpperCase() + field.slice(1)
-                  }
-                  fullWidth
-                  value={form[field]}
-                  onChange={handleChange}
-                  type={
-                    field === "cost" || field === "agencyFee"
-                      ? "number"
-                      : field === "date"
-                      ? "date"
-                      : "text"
-                  }
-                  InputLabelProps={field === "date" ? { shrink: true } : {}}
-                />
-              </Grid>
-            )
-          )}
+          {["name", "phone", "email", "cost", "agencyFee", "date"].map((field) => (
+            <Grid  item xs={field === "email" ? 12 : 6} key={field}>
+              <TextField
+                name={field} 
+                label={
+                  field === "agencyFee"
+                    ? "Agency Fee (Optional)"
+                    : field.charAt(0).toUpperCase() + field.slice(1)
+                }
+                fullWidth
+                value={form[field]}
+                onChange={handleChange}
+                type={
+                  field === "cost" || field === "agencyFee"
+                    ? "number"
+                    : field === "date"
+                    ? "date"
+                    : "text"
+                }
+                InputLabelProps={field === "date" ? { shrink: true } : {}}
+                sx={{
+                  backgroundColor: isDark ? "#2f2f2fff" : "#fff",
+                  input: { color: isDark ? "#fff" : "#000" },
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: isDark ? "#555" : "#ccc" },
+                    "&:hover fieldset": { borderColor: isDark ? "#777" : "#888" },
+                  },
+                  "& .MuiInputLabel-root": { color: isDark ? "#aaa" : "#555" },
+                }}
+              />
+            </Grid>
+          ))}
 
           <Grid item xs={12}>
             <TextField
@@ -150,6 +150,15 @@ const AddInvoice = () => {
               fullWidth
               value={form.status}
               onChange={handleChange}
+              sx={{
+                backgroundColor: isDark ? "#2f2f2fff" : "#fff",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: isDark ? "#555" : "#ccc" },
+                  "&:hover fieldset": { borderColor: isDark ? "#777" : "#888" },
+                },
+                "& .MuiInputLabel-root": { color: isDark ? "#aaa" : "#555" },
+                "& .MuiSelect-select": { color: isDark ? "#fff" : "#000" },
+              }}
             >
               {["Pending", "Paid", "Overdue"].map((option) => (
                 <MenuItem key={option} value={option}>
@@ -167,17 +176,22 @@ const AddInvoice = () => {
           onClick={handleSave}
           disabled={loading}
           sx={{
-            background: "linear-gradient(90deg, #0478d8, #0478d8)",
+            background: "linear-gradient(90deg, #ffae00ff, #ffae00ff)",
             fontWeight: "bold",
-            px: 3,
+            px: 5,
             py: 1,
-            borderRadius: "12px",
+            borderRadius: "32px",
           }}
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : "Add Invoice"}
         </Button>
 
-        <Button variant="outlined" onClick={handleClose}>
+        <Button
+          variant="outlined"
+          onClick={handleClose}
+          sx={{ color: isDark ? "#fff" : "#000", px: 5,
+            py: 1.5, borderRadius: '30px', borderColor: isDark ? "#ffffffff" : "#000000ff" }}
+        >
           Cancel
         </Button>
       </Box>

@@ -29,7 +29,6 @@ const Calendar = () => {
   const [end, setEnd] = useState("");
   const calendarRef = useRef(null);
 
-  // Media queries
   const isMobile = useMediaQuery("(max-width:600px)");
 
   useEffect(() => {
@@ -39,9 +38,7 @@ const Calendar = () => {
       setCurrentEvents(parsed);
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
-        parsed.forEach((event) => {
-          calendarApi.addEvent(event);
-        });
+        parsed.forEach((event) => calendarApi.addEvent(event));
       }
     }
   }, []);
@@ -90,23 +87,16 @@ const Calendar = () => {
   };
 
   const handleEventClick = (selected) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete the event '${selected.event.title}'?`
-      )
-    ) {
+    if (window.confirm(`Are you sure you want to delete the event '${selected.event.title}'?`)) {
       selected.event.remove();
-
-      const updatedEvents = currentEvents.filter(
-        (event) => event.id !== selected.event.id
-      );
+      const updatedEvents = currentEvents.filter((event) => event.id !== selected.event.id);
       setCurrentEvents(updatedEvents);
       saveEventsToLocalStorage(updatedEvents);
     }
   };
 
   return (
-    <Box m={isMobile ? "10px" : "20px"}>
+    <Box m={isMobile ? 1 : 3}>
       <Header title="Calendar" subtitle="Full Calendar with Form Input" />
 
       <Box
@@ -118,7 +108,7 @@ const Calendar = () => {
         <Box
           flex={isMobile ? "1 1 100%" : "1 1 25%"}
           backgroundColor={colors.primary[400]}
-          p={isMobile ? "10px" : "15px"}
+          p={isMobile ? 2 : 3}
           borderRadius="4px"
           minWidth={isMobile ? "auto" : "280px"}
         >
@@ -159,7 +149,6 @@ const Calendar = () => {
           <Button
             variant="contained"
             color="secondary"
-
             fullWidth
             onClick={handleAddEvent}
             sx={{ mt: 2 }}
@@ -205,10 +194,10 @@ const Calendar = () => {
               right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
             }}
             initialView="dayGridMonth"
-            editable={true}
-            selectable={true}
-            selectMirror={true}
-            dayMaxEvents={true}
+            editable
+            selectable
+            selectMirror
+            dayMaxEvents
             select={handleDateClick}
             eventClick={handleEventClick}
             eventsSet={(events) => {

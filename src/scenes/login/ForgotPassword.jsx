@@ -88,128 +88,98 @@ const ForgotPassword = () => {
     }, 2000);
   };
 
-  // ================= MODERN LOADER =================
-  if (showLoader) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#000000",
-          gap: 4,
-        }}
-      >
+    if (showLoader) {
+      return (
         <Box
           sx={{
-            position: "relative",
-            width: 80,
-            height: 80,
+            minHeight: "100vh",
             display: "flex",
+            
+            flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
+            background: "#0a0027ff",
+            gap: 2,
           }}
         >
-          {[...Array(12)].map((_, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0.2 }}
-              animate={{ opacity: [1, 0.2] }}
-              transition={{
-                repeat: Infinity,
-                duration: 1.2,
-                delay: i * 0.1,
-              }}
-              style={{
-                position: "absolute",
-                top: "4px",
-                left: "50%",
-                width: "8px",
-                height: "18px",
-                background: "linear-gradient(180deg, #ffffffff, #b0b0b0)",
-                borderRadius: "10px",
-                transformOrigin: "center 36px",
-                transform: `rotate(${i * 30}deg)`,
-                boxShadow: "0 0 6px rgba(255, 255, 255, 0.6)",
-              }}
-            />
-          ))}
-        </Box>
-
-        <motion.div
-          animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography
-              sx={{
-                fontSize: "1.4rem",
-                fontWeight: 600,
-                color: "#f5f5f5",
-                letterSpacing: "0.5px",
-                fontFamily:
-                  "SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif",
-              }}
-            >
-              Loading
-            </Typography>
-            {[...Array(3)].map((_, i) => (
+          <Box
+            sx={{
+              position: "relative",
+              width: 80,
+              height: 80,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {[...Array(12)].map((_, i) => (
               <motion.span
                 key={i}
-                animate={{ opacity: [0, 1, 0] }}
+                initial={{ opacity: 0.2 }}
+                animate={{ opacity: [1, 0.2] }}
                 transition={{
                   repeat: Infinity,
                   duration: 1.2,
-                  delay: i * 0.3,
-                  ease: "easeInOut",
+                  delay: i * 0.1,
                 }}
                 style={{
-                  fontSize: "1.4rem",
-                  fontWeight: 600,
-                  color: "#f5f5f5",
+                  position: "absolute",
+                  top: "4px",
+                  left: "50%",
+                  width: "8px",
+                  height: "18px",
+                  background: "linear-gradient(180deg, #ffffff, #b0b0b0)",
+                  borderRadius: "10px",
+                  transformOrigin: "center 36px",
+                  transform: `rotate(${i * 30}deg)`,
                 }}
-              >
-                .
-              </motion.span>
+              />
             ))}
           </Box>
-        </motion.div>
+  
+          <motion.div animate={{ scale: [1, 1.03, 1], opacity: [1, 0.9, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Typography sx={{ fontSize: "1.4rem", fontWeight: 600, color: "#f5f5f5" }}>
+                Loading
+              </Typography>
+              {[...Array(3)].map((_, i) => (
+                <motion.span
+                  key={i}
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.3 }}
+                  style={{ fontSize: "1.4rem", fontWeight: 600, color: "#f5f5f5" }}
+                >
+                  .
+                </motion.span>
+              ))}
+            </Box>
+          </motion.div>
+  
+          <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 2.4 }}>
+            <Typography sx={{ fontSize: "0.95rem", color: "#888", mt: 2, fontStyle: "italic" }}>
+              Preparing your ForgotPassword form...
+            </Typography>
+          </motion.div>
+        </Box>
+      );
+    }
+  
 
-        <motion.div
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ repeat: Infinity, duration: 2.4 }}
-        >
-          <Typography
-            sx={{
-              fontSize: "0.95rem",
-              color: "#888",
-              mt: 2,
-              fontStyle: "italic",
-              fontFamily:
-                "SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
-            }}
-          >
-            Preparing your Forgotpassword form...
-          </Typography>
-        </motion.div>
-      </Box>
-    );
-  }
-
-  // ================= UPDATED DESIGN =================
+  // ================= Responsive TextField =================
   const textFieldSx = {
     mb: 3,
     "& .MuiOutlinedInput-root": {
       borderRadius: 3,
-      height: 60,
+      height: { xs: 45, sm: 50, md: 60 },
       "& fieldset": { borderColor: "#cfd8dc" },
       "&:hover fieldset": { borderColor: "#00acc1" },
       "&.Mui-focused fieldset": { borderColor: "#00acc1" },
     },
-    "& .MuiInputLabel-root": { fontSize: "1rem", color: "#555" },
-    "& input": { fontSize: "1rem" },
+    "& .MuiInputLabel-root": {
+      fontSize: { xs: "0.8rem", sm: "0.9rem", md: "1rem" },
+      color: "#555",
+    },
+    "& input": { fontSize: { xs: "0.8rem", sm: "0.9rem", md: "1rem" } },
   };
 
   return (
@@ -220,7 +190,7 @@ const ForgotPassword = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        p: 2,
+        p: { xs: 2, sm: 4 },
       }}
     >
       <Fade in={true} timeout={1000}>
@@ -229,8 +199,7 @@ const ForgotPassword = () => {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
-            width: "900px",
-            maxWidth: "100%",
+            width: { xs: "100%", sm: "90%", md: "900px" },
             borderRadius: 5,
             overflow: "hidden",
             background: "#fff",
@@ -245,15 +214,16 @@ const ForgotPassword = () => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              p: 4,
+              p: { xs: 2, sm: 4 },
             }}
           >
             <img
-              src="/assets/se1.png" // 👈 your public asset image
+              src="/assets/se1.png"
               alt="Forgot Password"
               style={{
-                width: "90%",
-                maxWidth: "400px",
+                width: "70%", // smaller on mobile
+                maxWidth: "350px",
+                height: "auto",
               }}
             />
           </Box>
@@ -262,20 +232,30 @@ const ForgotPassword = () => {
           <Box
             sx={{
               flex: 1,
-              p: { xs: 4, md: 6 },
+              p: { xs: 2, sm: 4, md: 6 },
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
             }}
           >
             <Typography
-              variant="h4"
+              variant="h5"
               fontWeight="bold"
-              sx={{ color: "#2d3e50", mb: 1 }}
+              sx={{
+                color: "#2d3e50",
+                mb: 1,
+                fontSize: { xs: "1.3rem", sm: "1.5rem", md: "2rem" },
+              }}
             >
               Forgot Password?
             </Typography>
-            <Typography sx={{ color: "#6b7c93", mb: 4 }}>
+            <Typography
+              sx={{
+                color: "#6b7c93",
+                mb: 3,
+                fontSize: { xs: "0.8rem", sm: "0.95rem", md: "1rem" },
+              }}
+            >
               Enter the email address associated with your account.
             </Typography>
 
@@ -329,40 +309,58 @@ const ForgotPassword = () => {
               sx={{ ...textFieldSx, mb: 4 }}
             />
 
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleSubmit}
-              disabled={loading}
-              sx={{
-                py: 1.5,
-                borderRadius: 3,
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                textTransform: "none",
-                background: "linear-gradient(90deg, #00c6ff, #0072ff)",
-                "&:hover": { background: "linear-gradient(90deg, #0072ff, #00c6ff)" },
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={28} color="inherit" />
-              ) : (
-                "Reset Password"
-              )}
-            </Button>
+<Button
+  variant="contained"
+  fullWidth
+  onClick={handleSubmit}
+  disabled={loading}
+  sx={{
+    py: { xs: 1, sm: 1.2, md: 1.5 }, // responsive vertical padding
+    borderRadius: 3,
+    fontWeight: "bold",
+    fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1.1rem" }, // responsive font
+    textTransform: "none",
+    background: "linear-gradient(90deg, #020b43ff 0%, #031265ff 100%)",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      background: "linear-gradient(90deg, #010b3eff, #010b3eff)",
+      transform: { xs: "none", sm: "translateY(-2px)" },
+      boxShadow: {
+        xs: "0 2px 6px rgba(0,114,255,0.2)",
+        sm: "0 6px 20px rgba(0,114,255,0.35)",
+      },
+    },
+    "&:disabled": {
+      background: "#c4dafd",
+      color: "#fff",
+      boxShadow: "none",
+      cursor: "not-allowed",
+    },
+  }}
+>
+  {loading ? (
+    <CircularProgress
+      size={{ xs: 18, sm: 20, md: 24 }} // responsive loader
+      color="inherit"
+    />
+  ) : (
+    "Reset Password"
+  )}
+</Button>
+
 
             <Button
               onClick={() => navigate("/login")}
               sx={{
-                mt: 3,
+                mt: 2,
                 textTransform: "none",
-                fontWeight: 600,
-                fontSize: "1rem",
-                color: "#0072ff",
+                textDecoration: 'underline',
+                fontSize: { xs: "0.75rem", sm: "0.85rem", md: "1rem" },
+                color: "#767676ff",
                 "&:hover": { textDecoration: "underline" },
               }}
             >
-              ← Back to Login
+              Back to Login
             </Button>
           </Box>
         </Paper>

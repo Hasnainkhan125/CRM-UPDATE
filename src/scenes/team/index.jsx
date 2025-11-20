@@ -25,6 +25,7 @@ const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
+  // Breakpoints
   const isXs = useMediaQuery(theme.breakpoints.down("sm"));
   const isSm = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -41,7 +42,7 @@ const Team = () => {
   const [editAge, setEditAge] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editAccess, setEditAccess] = useState("");
+  const [editAccess, setEditAccess] = useState("user");
 
   const [notification, setNotification] = useState({
     open: false,
@@ -51,7 +52,7 @@ const Team = () => {
 
   const panelRef = useRef(null);
 
-  // ✅ Load team data from localStorage
+  // Load team data from localStorage
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("team-members")) || [];
     const cleaned = stored.map((m) => ({
@@ -61,14 +62,11 @@ const Team = () => {
     setTeamData(cleaned);
   }, []);
 
-  // ✅ Save data to localStorage + trigger dashboard refresh
   const saveToLocalStorage = (data) => {
     localStorage.setItem("team-members", JSON.stringify(data));
-    // Notify Dashboard to refresh its recent users
     window.dispatchEvent(new Event("storage"));
   };
 
-  // Close side panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
@@ -79,7 +77,7 @@ const Team = () => {
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [viewMember]);
 
-  // ✅ Add new member
+  // Add new member
   const handleAddNewMember = () => {
     if (!name || !age || !password || !email) {
       setNotification({
@@ -116,7 +114,6 @@ const Team = () => {
     });
   };
 
-  // ✅ Delete member
   const handleDeleteMember = (id) => {
     const updated = teamData.filter((m) => m._id !== id);
     setTeamData(updated);
@@ -126,13 +123,11 @@ const Team = () => {
     setNotification({ open: true, message: "User deleted!", severity: "info" });
   };
 
-  // View member details
   const handleViewMember = (member) => {
     setViewMember(member);
     setIsEditing(false);
   };
 
-  // Enter edit mode
   const handleEditClick = () => {
     if (!viewMember) return;
     setIsEditing(true);
@@ -143,7 +138,6 @@ const Team = () => {
     setEditAccess(viewMember.access || "user");
   };
 
-  // ✅ Save edited member
   const handleSaveEdit = () => {
     const updatedData = {
       ...viewMember,
@@ -182,7 +176,7 @@ const Team = () => {
       field: "access",
       headerName: "Access Level",
       flex: 1,
-      minWidth: 140,
+      minWidth: 240,
       renderCell: ({ row: { access } }) => (
         <Box
           width="80%"
@@ -236,11 +230,8 @@ const Team = () => {
     },
   ];
 
-  const columns = isXs
-    ? baseColumns.filter((c) => c.field !== "password")
-    : baseColumns;
-
-  const gridHeight = isXs ? 420 : isSm ? 520 : 520;
+  const columns = isXs ? baseColumns.filter((c) => !["password", "_id"].includes(c.field)) : baseColumns;
+  const gridHeight = isXs ? 600 : isSm ? 520 : 520;
 
   return (
     <Box m={isXs ? 1 : 2}>
@@ -249,7 +240,7 @@ const Team = () => {
       {/* Add Member Form */}
       <Box
         display="flex"
-        gap={2}
+        gap={3}
         mb={2}
         flexWrap="wrap"
         sx={{
@@ -258,30 +249,88 @@ const Team = () => {
           "& .MuiTextField-root": { minWidth: isXs ? "100%" : 180 },
         }}
       >
-        <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <TextField label="Age" type="number" value={age} onChange={(e) => setAge(e.target.value)} />
-        <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <TextField select label="Access" value={access} onChange={(e) => setAccess(e.target.value)}>
-          <MenuItem value="admin">Admin</MenuItem>
-          <MenuItem value="manager">Manager</MenuItem>
-          <MenuItem value="user">User</MenuItem>
-        </TextField>
+   <TextField
+  label="Name"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  fullWidth={isXs}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 10, // rounded corners
+    },
+  }}
+/>
+
+<TextField
+  label="Age"
+  type="number"
+  value={age}
+  onChange={(e) => setAge(e.target.value)}
+  fullWidth={isXs}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 10,
+    },
+  }}
+/>
+
+<TextField
+  label="Email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  fullWidth={isXs}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 10,
+    },
+  }}
+/>
+
+<TextField
+  label="Password"
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  fullWidth={isXs}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 10,
+    },
+  }}
+/>
+
+<TextField
+  select
+  label="Access"
+  value={access}
+  onChange={(e) => setAccess(e.target.value)}
+  fullWidth={isXs}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 10,
+    },
+  }}
+>
+  <MenuItem value="admin">Admin</MenuItem>
+  <MenuItem value="manager">Manager</MenuItem>
+  <MenuItem value="user">User</MenuItem>
+</TextField>
 
         <Button
           variant="contained"
           onClick={handleAddNewMember}
           sx={{
-            minWidth: 80,
+            minWidth: 90,
             height: 50,
-            background: "#e6b524ee",
+            background: "#eab20aee",
             color: "#fff",
             fontWeight: 600,
-            borderRadius: "5px",
-            "&:hover": { background: "#b58b0eee" },
+            borderRadius: "10px",
+            "&:hover": { background: "#ff9d00ff" },
+            width: isXs ? "100%" : "auto",
           }}
         >
-          Add
+          Add Invoice
         </Button>
       </Box>
 
@@ -291,6 +340,9 @@ const Team = () => {
           height: gridHeight,
           width: "100%",
           mb: 2,
+          p: 5,
+          py: '0',
+          px: '0',
           "& .MuiDataGrid-root": {
             background: theme.palette.mode === "dark" ? "#0d001cff" : "#fff",
           },
@@ -323,7 +375,7 @@ const Team = () => {
           right={0}
           height="100vh"
           width={isXs ? "100%" : isSm ? "60%" : "30%"}
-          bgcolor={theme.palette.mode === "dark" ? "#1e1e2f" : "#fff"}
+          bgcolor={theme.palette.mode === "dark" ? "#060022ff" : "#fff"}
           color={theme.palette.mode === "dark" ? "#fff" : "#000"}
           boxShadow={6}
           p={isXs ? 2 : 4}
@@ -332,78 +384,141 @@ const Team = () => {
         >
           {viewMember && (
             <>
-              <Typography variant="h5" fontWeight="bold" mb={2}>
+              <Typography variant="h2" fontWeight="bold" mt={1} mb={10}>
                 Member Details
               </Typography>
+<Box component="form" noValidate autoComplete="off" display="grid" gap={3}>
+  <TextField
+    label="Name"
+    value={isEditing ? editName : viewMember.name}
+    onChange={(e) => setEditName(e.target.value)}
+    InputProps={{ readOnly: !isEditing }}
+    fullWidth
+    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 10 } }}
+  />
+  <TextField
+    label="Age"
+    type="number"
+    value={isEditing ? editAge : viewMember.age}
+    onChange={(e) => setEditAge(e.target.value)}
+    InputProps={{ readOnly: !isEditing }}
+    fullWidth
+    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 10 } }}
+  />
+  <TextField
+    label="Email"
+    value={isEditing ? editEmail : viewMember.email}
+    onChange={(e) => setEditEmail(e.target.value)}
+    InputProps={{ readOnly: !isEditing }}
+    fullWidth
+    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 10 } }}
+  />
+  <TextField
+    label="Password"
+    type="password"
+    value={isEditing ? editPassword : viewMember.password}
+    onChange={(e) => setEditPassword(e.target.value)}
+    InputProps={{ readOnly: !isEditing }}
+    fullWidth
+    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 10 } }}
+  />
+  {isEditing ? (
+    <TextField
+      select
+      label="Access Level"
+      value={editAccess}
+      onChange={(e) => setEditAccess(e.target.value)}
+      fullWidth
+      sx={{ "& .MuiOutlinedInput-root": { borderRadius: 10 } }}
+    >
+      <MenuItem value="admin">Admin</MenuItem>
+      <MenuItem value="manager">Manager</MenuItem>
+      <MenuItem value="user">User</MenuItem>
+    </TextField>
+  ) : (
+    <TextField
+      label="Access Level"
+      value={viewMember.access}
+      InputProps={{ readOnly: true }}
+      fullWidth
+      sx={{ "& .MuiOutlinedInput-root": { borderRadius: 10 } }}
+    />
+  )}
+</Box>
 
-              <Box component="form" noValidate autoComplete="off" display="grid" gap={2}>
-                <TextField
-                  label="Name"
-                  value={isEditing ? editName : viewMember.name}
-                  onChange={(e) => setEditName(e.target.value)}
-                  InputProps={{ readOnly: !isEditing }}
-                  fullWidth
-                />
-                <TextField
-                  label="Age"
-                  type="number"
-                  value={isEditing ? editAge : viewMember.age}
-                  onChange={(e) => setEditAge(e.target.value)}
-                  InputProps={{ readOnly: !isEditing }}
-                  fullWidth
-                />
-                <TextField
-                  label="Email"
-                  value={isEditing ? editEmail : viewMember.email}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  InputProps={{ readOnly: !isEditing }}
-                  fullWidth
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={isEditing ? editPassword : viewMember.password}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  InputProps={{ readOnly: !isEditing }}
-                  fullWidth
-                />
 
-                {isEditing ? (
-                  <TextField
-                    select
-                    label="Access Level"
-                    value={editAccess}
-                    onChange={(e) => setEditAccess(e.target.value)}
-                    fullWidth
-                  >
-                    <MenuItem value="admin">Admin</MenuItem>
-                    <MenuItem value="manager">Manager</MenuItem>
-                    <MenuItem value="user">User</MenuItem>
-                  </TextField>
-                ) : (
-                  <TextField
-                    label="Access Level"
-                    value={viewMember.access}
-                    InputProps={{ readOnly: true }}
-                    fullWidth
-                  />
-                )}
-              </Box>
+            <Box
+  display="flex"
+  justifyContent="flex-end"
+  gap={2}
+  mt={3}
+  flexWrap="wrap"
+>
+  {isEditing ? (
+    <Button
+      variant="contained"
+      onClick={handleSaveEdit}
+      fullWidth={isXs}
+      sx={{
+        borderRadius: 3,
+        fontWeight: 600,
+        height: 39,
+        bgcolor: (theme) =>
+          theme.palette.mode === "dark" ? "#2563eb" : "#3b82f6",
+        color: "#fff",
+        "&:hover": {
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark" ? "#1e40af" : "#1d4ed8",
+        },
+      }}
+    >
+      Save
+    </Button>
+  ) : (
+    <Button
+      variant="contained"
+      onClick={handleEditClick}
+      fullWidth={isXs}
+      sx={{
+        borderRadius: 3,
+        fontWeight: 600,
+       height: 39,
+        bgcolor: (theme) =>
+          theme.palette.mode === "dark" ? "#10b981" : "#22c55e",
+        color: "#fff",
+        "&:hover": {
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark" ? "#059669" : "#16a34a",
+        },
+      }}
+    >
+      Edit
+    </Button>
+  )}
+  <Button
+    variant="outlined"
+    onClick={() => setViewMember(null)}
+    fullWidth={isXs}
+    sx={{
+      borderRadius: 3,
+      height: 39,
+      fontWeight: 600,
+      borderColor: (theme) =>
+        theme.palette.mode === "dark" ? "#6b7280" : "#d1d5db",
+      color: (theme) =>
+        theme.palette.mode === "dark" ? "#fff" : "#111827",
+      "&:hover": {
+        borderColor: (theme) =>
+          theme.palette.mode === "dark" ? "#9ca3af" : "#9ca3af",
+        backgroundColor: (theme) =>
+          theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      },
+    }}
+  >
+    Close
+  </Button>
+</Box>
 
-              <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-                {isEditing ? (
-                  <Button variant="contained" color="secondary" onClick={handleSaveEdit}>
-                    Save
-                  </Button>
-                ) : (
-                  <Button variant="contained" color="primary" onClick={handleEditClick}>
-                    Edit
-                  </Button>
-                )}
-                <Button variant="outlined" color="secondary" onClick={() => setViewMember(null)}>
-                  Close
-                </Button>
-              </Box>
             </>
           )}
         </Box>

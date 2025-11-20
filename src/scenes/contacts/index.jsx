@@ -1,37 +1,41 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Paper,
   Typography,
   Button,
   Drawer,
   TextField,
   IconButton,
   MenuItem,
-  useTheme,
-  Divider,
   Snackbar,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Chip,
+  Avatar,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer,
+  TablePagination,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
+
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
-import { DataGrid } from "@mui/x-data-grid";
-import { tokens } from "../../theme";
-import Header from "../../components/Header";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 
 const Contacts = () => {
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const [contacts, setContacts] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, contact: null });
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, contactId: null });
   const [formData, setFormData] = useState({
     name: "",
     mobile: "",
@@ -41,72 +45,33 @@ const Contacts = () => {
     pinCode: "",
     dob: "",
     status: "Pending",
-    contactCode: "",
-    batchNo: "",
-    deleted: "No",
   });
+  const [filter, setFilter] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
-  const [filterData, setFilterData] = useState({
-    name: "",
-    mobile: "",
-    type: "",
-    status: "",
-    search: "",
-  });
 
-  // Load contacts from localStorage
+// Function to get random background color
+const getRandomColor = () => {
+  const colors = ["#3b82f6", "#ef4444", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899"];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
+
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("contacts")) || [];
     setContacts(stored);
   }, []);
 
-  // Save contacts to localStorage
-  const saveToStorage = (data) => {
+  const saveContacts = (data) => {
     localStorage.setItem("contacts", JSON.stringify(data));
     setContacts(data);
   };
 
-  // Auto approve pending contacts
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      contacts.forEach((contact) => {
-        if (
-          contact.status?.toLowerCase() === "pending" &&
-          contact.createdAt &&
-          now - new Date(contact.createdAt) >= 4000
-        ) {
-          setConfirmDialog({ open: true, contact });
-        }
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [contacts]);
-
-  const handleConfirmApprove = () => {
-    const contact = confirmDialog.contact;
-    const updatedContacts = contacts.map((c) =>
-      c._id === contact._id ? { ...c, status: "Approved" } : c
-    );
-    saveToStorage(updatedContacts);
-    setSnackbar({
-      open: true,
-      message: `${contact.name} approved successfully!`,
-      severity: "success",
-    });
-    setConfirmDialog({ open: false, contact: null });
-  };
-
-  const handleCancelConfirm = () => {
-    setConfirmDialog({ open: false, contact: null });
-    setSnackbar({
-      open: true,
-      message: "Contact remains pending.",
-      severity: "info",
-    });
-  };
-
-  const handleAddClick = () => {
+  const handleAddContact = () => {
     setEditingContact(null);
     setFormData({
       name: "",
@@ -117,512 +82,457 @@ const Contacts = () => {
       pinCode: "",
       dob: "",
       status: "Pending",
-      contactCode: "",
-      batchNo: "",
-      deleted: "No",
     });
-    setOpen(true);
+    setOpenDrawer(true);
   };
 
-  const handleEdit = (contact) => {
+  const handleEditContact = (contact) => {
     setEditingContact(contact);
-    setFormData({ ...contact });
-    setOpen(true);
+    setFormData(contact);
+    setOpenDrawer(true);
   };
 
-  const handleDelete = (id) => setDeleteDialog({ open: true, contactId: id });
-
-  const confirmDelete = () => {
-    const updatedContacts = contacts.filter((c) => c._id !== deleteDialog.contactId);
-    saveToStorage(updatedContacts);
-    setSnackbar({
-      open: true,
-      message: "Contact deleted successfully!",
-      severity: "success",
-    });
-    setDeleteDialog({ open: false, contactId: null });
+  const handleDeleteContact = (id) => {
+    const updated = contacts.filter((c) => c._id !== id);
+    saveContacts(updated);
+    setSnackbar({ open: true, message: "Contact deleted!", severity: "success" });
   };
-
-  const cancelDelete = () => setDeleteDialog({ open: false, contactId: null });
 
   const handleSave = () => {
     if (!formData.name || !formData.mobile) {
-      alert("Please fill at least Name and Mobile.");
+      alert("Name and Mobile are required.");
       return;
     }
 
     if (editingContact) {
-      // Update contact
-      const updatedContacts = contacts.map((c) =>
+      const updated = contacts.map((c) =>
         c._id === editingContact._id ? { ...formData, _id: editingContact._id } : c
       );
-      saveToStorage(updatedContacts);
+      saveContacts(updated);
       setSnackbar({ open: true, message: "Contact updated!", severity: "success" });
     } else {
-      // Add new contact
-      const newContact = {
-        ...formData,
-        _id: Date.now().toString() + Math.random().toString(16).slice(2),
-        createdAt: new Date().toISOString(),
-      };
-      const updatedContacts = [...contacts, newContact];
-      saveToStorage(updatedContacts);
+      const newContact = { ...formData, _id: Date.now().toString() };
+      saveContacts([...contacts, newContact]);
       setSnackbar({ open: true, message: "Contact added!", severity: "success" });
     }
-
-    setOpen(false);
-    setEditingContact(null);
+    setOpenDrawer(false);
   };
 
-  const renderStatus = (status) => {
-    let bgColor, textColor;
-    switch (status?.toLowerCase()) {
-      case "pending":
-        bgColor = "#969595ff";
-        textColor = "#ffffff";
-        break;
-      case "rejected":
-        bgColor = "#dc2626";
-        textColor = "#ffffff";
-        break;
-      case "approved":
-        bgColor = "#209e27ff";
-        textColor = "#ffffff";
-        break;
-      default:
-        bgColor = "#6b7280";
-        textColor = "#ffffff";
-    }
-    return (
-      <Box
+  const renderStatusChip = (status) => {
+    const colors = {
+      Pending: "warning",
+      Approved: "success",
+      Rejected: "error",
+    };
+    return <Chip label={status} color={colors[status]} size="small" sx={{ fontWeight: 600 }} />;
+  };
+
+  const filteredContacts = contacts.filter((c) =>
+    Object.values(c).join(" ").toLowerCase().includes(filter.toLowerCase())
+  );
+
+  const sortedContacts = [...filteredContacts].sort((a, b) => {
+    const valA = a[sortConfig.key] || "";
+    const valB = b[sortConfig.key] || "";
+    return sortConfig.direction === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
+  });
+
+  const paginated = sortedContacts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  const requestSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const handleChangePage = (_, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (e) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
+    setPage(0);
+  };
+
+  return (
+    <Box p={3}>
+      <Typography variant="h2" fontFamily={"sans-serif"} fontWeight={700} mb={2}>
+        Contacts
+      </Typography>
+
+
+
+      {/* Search + Add Button */}
+<Box
+  display="flex"
+  flexDirection={{ xs: "column", sm: "row" }}
+  gap={2}
+  alignItems={{ xs: "stretch", sm: "center" }}
+  mb={3}
+>
+  <TextField
+    placeholder="Search contacts..."
+    size="medium"
+    value={filter}
+    onChange={(e) => setFilter(e.target.value)}
+    fullWidth={isMobile}
+    sx={{
+      backgroundColor: theme.palette.mode === "dark" ? "#1f1f1fff" : "#f9f9f9",
+      borderRadius: 10,
+      "& .MuiOutlinedInput-root": {
+        borderRadius: 10,
+        width: '53vh',
+        paddingRight: 1,
+        backgroundColor: theme.palette.mode === "dark" ? "#1f1f1f" : "#e9e9e9ff",
+      },
+      "& .MuiOutlinedInput-notchedOutline": {
+        border: "none",
+      },
+    }}
+  />
+
+  <Button
+    variant="contained"
+    onClick={handleAddContact}
+    sx={{
+      background: "linear-gradient(135deg,#0ea5e9,#3b82f6)",
+      color: "#fff",
+      fontWeight: 600,
+      borderRadius: 3,
+      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+      px: 4,
+      py: 1.9,
+      "&:hover": {
+        background: "linear-gradient(135deg,#3b82f6,#0ea5e9)",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+      },
+      width: { xs: "100%", sm: "auto" },
+    }}
+  >
+    + Add Contact
+  </Button>
+</Box>
+
+{/* Desktop Table */}
+<TableContainer
+  component={Paper}
+  sx={{
+    borderRadius: 3,
+    display: { xs: "none", sm: "block" },
+    maxHeight: 500, // <-- Set the table container height limit
+    overflowY: "auto", // <-- Enable vertical scroll inside the table body if needed
+  }}
+>
+  <Table stickyHeader>
+    <TableHead>
+      <TableRow>
+        <TableCell>Avatar</TableCell>
+        {[
+          "name",
+          "email",
+          "mobile",
+          "type",
+          "address",
+          "pinCode",
+          "dob",
+          "status",
+        ].map((col) => (
+          <TableCell
+            key={col}
+            onClick={() => requestSort(col)}
+            sx={{ cursor: "pointer", fontWeight: 700 }}
+          >
+            {col.charAt(0).toUpperCase() + col.slice(1)}
+            {sortConfig.key === col &&
+              (sortConfig.direction === "asc" ? (
+                <ArrowDropUpIcon fontSize="small" />
+              ) : (
+                <ArrowDropDownIcon fontSize="small" />
+              ))}
+          </TableCell>
+        ))}
+        <TableCell align="right" sx={{ fontWeight: 700 }}>
+          Actions
+        </TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {paginated.map((c) => (
+        <TableRow key={c._id} hover>
+          <TableCell>
+            <Avatar sx={{ bgcolor: getRandomColor(), width: 45, height: 45 }}>
+              {c.name[0]}
+            </Avatar>
+          </TableCell>
+          <TableCell>{c.name}</TableCell>
+          <TableCell>{c.email}</TableCell>
+          <TableCell>{c.mobile}</TableCell>
+          <TableCell>{c.type}</TableCell>
+          <TableCell>{c.address}</TableCell>
+          <TableCell>{c.pinCode}</TableCell>
+          <TableCell>{c.dob}</TableCell>
+          <TableCell>{renderStatusChip(c.status)}</TableCell>
+          <TableCell align="right">
+            <IconButton color="primary" onClick={() => handleEditContact(c)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton color="error" onClick={() => handleDeleteContact(c._id)}>
+              <DeleteOutlineIcon />
+            </IconButton>
+          </TableCell>
+        </TableRow>
+      ))}
+
+      {!paginated.length && (
+        <TableRow>
+          <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
+            No contacts found.
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  </Table>
+
+  {/* Pagination at the bottom */}
+  <Box display="flex" justifyContent="flex-end" mt={1} mb={1}>
+    <TablePagination
+      component="div"
+      count={filteredContacts.length}
+      page={page}
+      onPageChange={handleChangePage}
+      rowsPerPage={rowsPerPage}
+      onRowsPerPageChange={handleChangeRowsPerPage}
+      rowsPerPageOptions={[5, 10, 20]}
+      labelRowsPerPage="Per page"
+    />
+  </Box>
+</TableContainer>
+
+
+
+{/* Mobile Cards */}
+<Box
+  sx={{
+    display: { xs: "grid", sm: "none" },
+    gridTemplateColumns: "1fr",
+    gap: 2,
+    mt: 2,
+  }}
+>
+  {paginated.length ? (
+    paginated.map((c) => (
+      <Paper
+        key={c._id}
+        elevation={3}
         sx={{
-          px: 1.5,
-          py: 0.5,
-          borderRadius: "8px",
-          textAlign: "center",
-          fontWeight: 600,
-          color: textColor,
-          backgroundColor: bgColor,
-          textTransform: "capitalize",
+          p: 2,
+          borderRadius: 3,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          height: 210, // fixed height for the card
         }}
       >
-        {status}
-      </Box>
-    );
-  };
+        {/* Header */}
+        <Box display="flex" alignItems="center" gap={2}>
+          <Avatar sx={{ bgcolor: getRandomColor(), width: 45, height: 45 }}>
+            {c.name[0]}
+          </Avatar>
+          <Box sx={{ overflow: "hidden" }}>
+            <Typography fontWeight={700} noWrap>
+              {c.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {c.email || "-"}
+            </Typography>
+          </Box>
+        </Box>
 
-  const columns = [
-    { field: "id", headerName: "ID", flex: 0.3, minWidth: 60, valueGetter: (params) => params.row._id },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 160 },
-    { field: "mobile", headerName: "Mobile", flex: 0.8, minWidth: 120 },
-    { field: "email", headerName: "Email", flex: 1, minWidth: 160 },
-    { field: "type", headerName: "Type", flex: 0.6, minWidth: 100 },
-    { field: "address", headerName: "Address", flex: 1, minWidth: 140 },
-    { field: "pinCode", headerName: "Pin", flex: 0.4, minWidth: 100 },
-    { field: "dob", headerName: "DOB", flex: 0.6, minWidth: 120 },
-    {
-      field: "status",
-      headerName: "Status",
-      flex: 0.6,
-      minWidth: 120,
-      renderCell: (params) => renderStatus(params.row.status),
-    },
-    { field: "contactCode", headerName: "Contact Code", flex: 0.6, minWidth: 120 },
-    { field: "batchNo", headerName: "Batch No", flex: 0.5, minWidth: 100 },
-    { field: "deleted", headerName: "Deleted", flex: 0.4, minWidth: 80 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      flex: 0.7,
-      minWidth: 140,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <Box display="flex" gap={1}>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => handleEdit(params.row)}
+        {/* Info - scrollable */}
+        <Box
+          mt={1}
+          display="grid"
+          gap={0.5}
+          sx={{
+            flexGrow: 1,
+            overflowY: "auto",
+            pr: 1,
+          }}
+        >
+          <Typography variant="body2">Mobile: {c.mobile}</Typography>
+          <Typography variant="body2">Type: {c.type}</Typography>
+          <Typography variant="body2">Address: {c.address}</Typography>
+          <Typography variant="body2">DOB: {c.dob}</Typography>
+          <Box mt={1}>{renderStatusChip(c.status)}</Box>
+        </Box>
+
+        {/* Actions */}
+        <Box display="flex" justifyContent="flex-end" gap={1} mt={1}>
+          <IconButton
+            onClick={() => handleEditContact(c)}
             sx={{
-              background: "linear-gradient(90deg, #064ab1ff, #064ab1ff)",
+              bgcolor: "#3b82f6",
               color: "#fff",
-              textTransform: "none",
-              borderRadius: "8px",
+              "&:hover": { bgcolor: "#2563eb" },
             }}
           >
-            Edit
-          </Button>
+            <EditIcon />
+          </IconButton>
           <IconButton
-            size="small"
-            color="error"
-            onClick={() => handleDelete(params.row._id)}
-            title="Delete"
+            onClick={() => handleDeleteContact(c._id)}
+            sx={{
+              bgcolor: "#ef4444",
+              color: "#fff",
+              "&:hover": { bgcolor: "#b91c1c" },
+            }}
           >
             <DeleteOutlineIcon />
           </IconButton>
         </Box>
-      ),
-    },
-  ];
-
-  const filteredContacts = contacts.filter(
-    (c) =>
-      c.name.toLowerCase().includes(filterData.name.toLowerCase()) &&
-      c.mobile.toLowerCase().includes(filterData.mobile.toLowerCase()) &&
-      (filterData.type === "" || c.type === filterData.type) &&
-      (filterData.status === "" || c.status === filterData.status) &&
-      (filterData.search === "" ||
-        Object.values(c).join(" ").toLowerCase().includes(filterData.search.toLowerCase()))
-  );
-
-  return (
-    <Box m="20px">
-      <Header title="CONTACTS" subtitle="Manage and Add Your Contacts" />
-
-      <Paper
-        elevation={8}
-        sx={{
-          mt: 4,
-          p: 3,
-          borderRadius: "16px",
-          background:
-            theme.palette.mode === "dark" ? "#0d001cff" : "#f9fafb",
-        }}
-      >
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Typography
-            variant="h5"
-            fontWeight={600}
-            color={colors.greenAccent[400]}
-          >
-            Contacts List 📇
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={handleAddClick}
-            sx={{
-              background: "linear-gradient(90deg, #064ab1ff, #064ab1ff)",
-              color: "#fff",
-              width: "140px",
-              px: 2,
-              fontWeight: 600,
-              borderRadius: "5px",
-            }}
-          >
-            + Add Contact
-          </Button>
-        </Box>
-
-        {/* Filter Section */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: 2,
-            mb: 3,
-            borderRadius: "16px",
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 2,
-            alignItems: "center",
-            backgroundColor:
-              theme.palette.mode === "dark" ? "#1f2937" : "#ffffff",
-          }}
-        >
-          <TextField
-            label="Search"
-            size="small"
-            value={filterData.search}
-            onChange={(e) =>
-              setFilterData({ ...filterData, search: e.target.value })
-            }
-            sx={{ flex: 2, minWidth: 150 }}
-          />
-          <TextField
-            label="Name"
-            size="small"
-            value={filterData.name}
-            onChange={(e) =>
-              setFilterData({ ...filterData, name: e.target.value })
-            }
-            sx={{ flex: 1, minWidth: 120 }}
-          />
-          <TextField
-            label="Mobile"
-            size="small"
-            value={filterData.mobile}
-            onChange={(e) =>
-              setFilterData({ ...filterData, mobile: e.target.value })
-            }
-            sx={{ flex: 1, minWidth: 120 }}
-          />
-          <TextField
-            select
-            label="Type"
-            size="small"
-            value={filterData.type}
-            onChange={(e) =>
-              setFilterData({ ...filterData, type: e.target.value })
-            }
-            sx={{ flex: 1, minWidth: 120 }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="Lead">Lead</MenuItem>
-            <MenuItem value="Customer">Customer</MenuItem>
-            <MenuItem value="Interested">Interested</MenuItem>
-            <MenuItem value="Other">Other</MenuItem>
-          </TextField>
-          <TextField
-            select
-            label="Status"
-            size="small"
-            value={filterData.status}
-            onChange={(e) =>
-              setFilterData({ ...filterData, status: e.target.value })
-            }
-            sx={{ flex: 1, minWidth: 120 }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Approved">Approved</MenuItem>
-            <MenuItem value="Rejected">Rejected</MenuItem>
-          </TextField>
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            onClick={() =>
-              setFilterData({
-                name: "",
-                mobile: "",
-                type: "",
-                status: "",
-                search: "",
-              })
-            }
-            sx={{ borderRadius: "12px", height: "40px" }}
-          >
-            Clear
-          </Button>
-        </Paper>
-
-        <Box height="65vh">
-          <DataGrid
-            rows={filteredContacts}
-            columns={columns}
-            getRowId={(r) => r._id}
-            pageSize={25}
-            rowsPerPageOptions={[10, 25, 50, 100]}
-          />
-        </Box>
       </Paper>
+    ))
+  ) : (
+    <Typography textAlign="center">No contacts found.</Typography>
+  )}
+</Box>
 
-      {/* Dialogs, Drawer, Snackbar same as original (no change) */}
-      <Dialog open={confirmDialog.open} onClose={handleCancelConfirm}>
-        <DialogTitle>Confirm Contact Details</DialogTitle>
-        <DialogContent dividers>
-          {confirmDialog.contact && (
-            <Box display="grid" gap={1.5}>
-              <Typography>Name: {confirmDialog.contact.name}</Typography>
-              <Typography>Mobile: {confirmDialog.contact.mobile}</Typography>
-              <Typography>Email: {confirmDialog.contact.email}</Typography>
-              <Typography>Type: {confirmDialog.contact.type}</Typography>
-              <Typography>Address: {confirmDialog.contact.address}</Typography>
-              <Typography>Status: {confirmDialog.contact.status}</Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelConfirm}>Keep Pending</Button>
-          <Button
-            onClick={handleConfirmApprove}
-            variant="contained"
-            sx={{
-              background: "linear-gradient(90deg,#22c55e,#16a34a)",
-              color: "#fff",
-            }}
-          >
-            Confirm & Approve
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      <Dialog open={deleteDialog.open} onClose={cancelDelete}>
-        <DialogTitle>Delete Contact</DialogTitle>
-        <DialogContent dividers>
-          <Typography>Are you sure you want to delete this contact?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelDelete}>No</Button>
-          <Button
-            onClick={confirmDelete}
-            variant="contained"
-            sx={{
-              background: "linear-gradient(90deg,#ef4444,#dc2626)",
-              color: "#fff",
-            }}
-          >
-            Yes, Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
 
+
+      {/* Drawer for Add/Edit */}
       <Drawer
         anchor="right"
-        open={open}
-        onClose={() => setOpen(false)}
-        transitionDuration={500}
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
         PaperProps={{
           sx: {
-            width: { xs: "100%", sm: "480px" },
-            backgroundColor:
-              theme.palette.mode === "dark" ? "#1f2937" : "#ffffff",
-            color:
-              theme.palette.mode === "dark" ? "#ffffff" : "#000000",
-            borderTopLeftRadius: "16px",
+            width: { xs: "100%", sm: 520 },
+            maxWidth: "100%",
             borderBottomLeftRadius: "16px",
-            boxShadow: "0px 0px 20px rgba(0,0,0,0.4)",
+            p: { xs: 4, sm: 3 },
+            bgcolor: theme.palette.mode === "dark" ? "#000000ff" : "#fff",
           },
         }}
       >
-        <Box
-          p={3}
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography variant="h6" fontWeight={600}>
-            {editingContact ? "Edit Contact" : "Add New Contact"}
-          </Typography>
-          <IconButton onClick={() => setOpen(false)} color="inherit">
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h3" mt={5}>{editingContact ? "Edit Contact" : "Add Contact" }</Typography>
+          <IconButton onClick={() => setOpenDrawer(false)}>
             <CloseIcon />
           </IconButton>
         </Box>
-        <Divider />
-        <Box p={3} display="grid" gap={2}>
-          <TextField
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Mobile"
-            value={formData.mobile}
-            onChange={(e) =>
-              setFormData({ ...formData, mobile: e.target.value })
-            }
-            fullWidth
-          />
-          <TextField
-            label="Email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            fullWidth
-          />
-          <TextField
-            select
-            label="Type"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            fullWidth
-          >
-            <MenuItem value="Lead">Lead</MenuItem>
-            <MenuItem value="Customer">Customer</MenuItem>
-            <MenuItem value="Interested">Interested</MenuItem>
-            <MenuItem value="Other">Other</MenuItem>
-          </TextField>
-          <TextField
-            label="Address"
-            value={formData.address}
-            onChange={(e) =>
-              setFormData({ ...formData, address: e.target.value })
-            }
-            fullWidth
-          />
-          <TextField
-            label="Pin Code"
-            value={formData.pinCode}
-            onChange={(e) =>
-              setFormData({ ...formData, pinCode: e.target.value })
-            }
-            fullWidth
-          />
-          <TextField
-            label="DOB"
-            type="date"
-            value={formData.dob}
-            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            select
-            label="Status"
-            value={formData.status}
-            onChange={(e) =>
-              setFormData({ ...formData, status: e.target.value })
-            }
-            fullWidth
-          >
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Approved">Approved</MenuItem>
-            <MenuItem value="Rejected">Rejected</MenuItem>
-          </TextField>
-          <TextField
-            label="Contact Code"
-            value={formData.contactCode}
-            onChange={(e) =>
-              setFormData({ ...formData, contactCode: e.target.value })
-            }
-            fullWidth
-          />
-          <TextField
-            label="Batch No"
-            value={formData.batchNo}
-            onChange={(e) =>
-              setFormData({ ...formData, batchNo: e.target.value })
-            }
-            fullWidth
-          />
-          <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-            <Button onClick={() => setOpen(false)} color="inherit">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              variant="contained"
-              sx={{
-                background: "linear-gradient(90deg,#1f2a40,#1f2a40)",
-                fontWeight: 600,
-              }}
-            >
-              {editingContact ? "Update" : "Add"}
-            </Button>
-          </Box>
+
+        <Box display="grid" gap={2}>
+          {["name", "mobile", "email", "type", "address", "pinCode", "dob", "status"].map((field) =>
+            field === "type" || field === "status" ? (
+              <TextField
+                key={field}
+                select
+                label={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={formData[field]}
+                onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "22px",
+                    background: theme.palette.mode === "dark" ? "rgba(27, 27, 27, 1)" : "rgba(250,250,250,1)",
+                  },
+                }}
+              >
+                {field === "type" && ["Lead", "Customer", "Interested", "Other"].map((t) => (
+                  <MenuItem key={t} value={t}>{t}</MenuItem>
+                ))}
+                {field === "status" && ["Pending", "Approved", "Rejected"].map((s) => (
+                  <MenuItem key={s} value={s}>{s}</MenuItem>
+                ))}
+              </TextField>
+            ) : (
+              <TextField
+                key={field}
+                label={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={formData[field]}
+                onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                type={field === "dob" ? "date" : "text"}
+                InputLabelProps={field === "dob" ? { shrink: true } : {}}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "22px",
+                    background: theme.palette.mode === "dark" ? "rgba(27, 27, 27, 1)" : "rgba(250,250,250,1)",
+                  },
+                }}
+              />
+            )
+          )}
+
+<Box
+  display="flex"
+  flexDirection={{ xs: "column", sm: "row" }}
+  justifyContent="flex-end"
+  gap={2}
+  mt={2}
+>
+  {/* Cancel Button */}
+  <Button
+    fullWidth
+    variant="outlined"
+    onClick={() => setOpenDrawer(false)}
+    sx={{
+      borderRadius: 20,
+      fontWeight: 600,
+      height: 50,
+      color: theme.palette.mode === "dark" ? "#fff" : "#333",
+      borderColor: theme.palette.mode === "dark" ? "#555" : "#ccc",
+      backgroundColor: theme.palette.mode === "dark" ? "#ffae00ff" : "#f9f9f9",
+      boxShadow: theme.palette.mode === "dark" 
+        ? "0 1px 3px rgba(0,0,0,0.5)" 
+        : "0 1px 5px rgba(0,0,0,0.1)",
+      "&:hover": {
+        backgroundColor: theme.palette.mode === "dark" ? "#2c2c2c" : "#eaeaea",
+        borderColor: theme.palette.mode === "dark" ? "#777" : "#bbb",
+      },
+    }}
+  >
+    Cancel
+  </Button>
+
+  {/* Add / Update Button */}
+  <Button
+    fullWidth
+    onClick={handleSave}
+    variant="contained"
+    sx={{
+      borderRadius: 10,
+      fontWeight: 600,
+      height: 50,
+      background: theme.palette.mode === "dark"
+        ? "linear-gradient(135deg,#3b82f6,#0ea5e9)"
+        : "linear-gradient(135deg,#10b981,#10b981)",
+      color: "#fff",
+      boxShadow: theme.palette.mode === "dark"
+        ? "0 3px 6px rgba(0,0,0,0.5)"
+        : "0 3px 6px rgba(0,0,0,0.15)",
+      "&:hover": {
+        background: theme.palette.mode === "dark"
+          ? "linear-gradient(135deg,#0ea5e9,#3b82f6)"
+          : "linear-gradient(135deg,#3b82f6,#0ea5e9)",
+        boxShadow: theme.palette.mode === "dark"
+          ? "0 4px 8px rgba(0,0,0,0.6)"
+          : "0 4px 8px rgba(0,0,0,0.2)",
+      },
+    }}
+  >
+    {editingContact ? "Update" : "Add"}
+  </Button>
+</Box>
+
         </Box>
       </Drawer>
 
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
+        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
     </Box>
   );

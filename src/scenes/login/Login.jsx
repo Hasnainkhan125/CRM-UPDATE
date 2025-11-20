@@ -259,11 +259,12 @@ const Login = () => {
         sx={{
           minHeight: "100vh",
           display: "flex",
+          
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "#000",
-          gap: 4,
+          background: "#0a0027ff",
+          gap: 2,
         }}
       >
         <Box
@@ -296,7 +297,6 @@ const Login = () => {
                 borderRadius: "10px",
                 transformOrigin: "center 36px",
                 transform: `rotate(${i * 30}deg)`,
-                boxShadow: "0 0 6px rgba(255, 255, 255, 0.6)",
               }}
             />
           ))}
@@ -355,46 +355,46 @@ const Login = () => {
               justifyContent: "center",
             }}
           >
-            {/* Top Logo */}
+
+
 {/* Logo + Header */}
-<Box sx={{ display: "flex", alignItems: "center", justifyContent: 'center', gap: 2.5, mb: 4 }}>
+<Box sx={{ display: "flex", alignItems: "center", justifyContent: 'center', gap: { xs: 2, md: 2.5 }, mb: { xs: 3, md: 4 } }}>
   <img
-    src="/assets//logo/logo1.png" // your logo asset
+    src="/assets/logo/logo1.png"
     alt="logo"
     style={{
-      width: 70,            // slightly larger
-      height: 70,
-      borderRadius: 14,     // smoother round edges
+      width: 60,            // smaller for tiny screens
+      height: 60,
+      borderRadius: 14,
       objectFit: "cover",
     }}
   />
-
 </Box>
 
-<Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 3 }}>
+<Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: { xs: 0.5, md: 1 }, mb: { xs: 2, md: 3 } }}>
   {/* Icon */}
   <Box
     sx={{
-      width: { xs: 30, md: 36 },
-      height: { xs: 30, md: 36 },
+      width: { xs: 26, md: 36 },
+      height: { xs: 26, md: 36 },
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      bgcolor: "#0f1a65ff", // modern purple background
+      bgcolor: "#0f1a65ff",
       borderRadius: "50%",
       color: "#fff",
-      fontSize: { xs: 18, md: 24 },
+      fontSize: { xs: 16, md: 24 },
     }}
   >
    👋 
-      </Box>
+  </Box>
 
   {/* Heading */}
   <Typography
     variant="h5"
     color="#0f172a"
     sx={{
-      fontSize: { xs: 26, md: 34 },
+      fontSize: { xs: 20, md: 34 },
       lineHeight: 1.2,
       fontWeight: 900,
     }}
@@ -403,18 +403,15 @@ const Login = () => {
   </Typography>
 </Box>
 
-
 <Typography
   variant="body2"
-    textAlign={'center'}
+  textAlign={'center'}
   color="#6b7280"
-  mb={5}
-  sx={{ fontSize: { xs: 15, md: 17 }, lineHeight: 1.8 }}
+  mb={{ xs: 3, md: 5 }}
+  sx={{ fontSize: { xs: 13, md: 17 }, lineHeight: 1.8 }}
 >
   Please enter your details to continue
 </Typography>
-
-
 
 {/* Email */}
 <TextField
@@ -427,26 +424,26 @@ const Login = () => {
   InputProps={{
     startAdornment: (
       <InputAdornment position="start">
-        <EmailOutlinedIcon sx={{ color: "#4f46e5", transition: "color 0.3s" }} />
+        <EmailOutlinedIcon sx={{ color: "#4f46e5", fontSize: { xs: 18, md: 24 }, transition: "color 0.3s" }} />
       </InputAdornment>
     ),
   }}
   sx={{
-    mb: 2,
-    backgroundColor: "#f9fafb", // very soft modern background
-    borderRadius: 3, // smooth modern roundness
+    mb: { xs: 1.5, md: 2 },
+    backgroundColor: "#f9fafb",
+    borderRadius: 3,
     "& .MuiOutlinedInput-root": {
       borderRadius: 3,
-      "& fieldset": { borderColor: "#d1d5db" }, // soft gray
+      "& fieldset": { borderColor: "#d1d5db" },
       "&:hover fieldset": { borderColor: "#4f46e5" },
       "&.Mui-focused fieldset": {
         borderColor: "#4f46e5",
-        boxShadow: "0 6px 20px rgba(79, 70, 229, 0.2)", // gentle focus shadow
+        boxShadow: "0 6px 20px rgba(79, 70, 229, 0.2)",
       },
       transition: "all 0.3s ease",
     },
-    input: { color: "#111827" },
-    label: { color: "#6b7280" }, // muted modern label
+    input: { color: "#111827", fontSize: { xs: 13, md: 16 } },
+    label: { color: "#6b7280", fontSize: { xs: 12, md: 14 } },
   }}
 />
 
@@ -462,23 +459,23 @@ const Login = () => {
   InputProps={{
     startAdornment: (
       <InputAdornment position="start">
-        <LockOutlinedIcon sx={{ color: "#4f46e5", transition: "color 0.3s" }} />
+        <LockOutlinedIcon sx={{ color: "#4f46e5", fontSize: { xs: 18, md: 24 }, transition: "color 0.3s" }} />
       </InputAdornment>
     ),
     endAdornment: (
       <InputAdornment position="end">
-        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ p: { xs: 0.3, md: 0.5 } }}>
           {showPassword ? (
-            <VisibilityOff sx={{ color: "#4f46e5", transition: "color 0.3s" }} />
+            <VisibilityOff sx={{ color: "#4f46e5", fontSize: { xs: 18, md: 24 }, transition: "color 0.3s" }} />
           ) : (
-            <Visibility sx={{ color: "#4f46e5", transition: "color 0.3s" }} />
+            <Visibility sx={{ color: "#4f46e5", fontSize: { xs: 18, md: 24 }, transition: "color 0.3s" }} />
           )}
         </IconButton>
       </InputAdornment>
     ),
   }}
   sx={{
-    mb: 2,
+    mb: { xs: 1.5, md: 2 },
     backgroundColor: "#f9fafb",
     borderRadius: 3,
     "& .MuiOutlinedInput-root": {
@@ -491,12 +488,10 @@ const Login = () => {
       },
       transition: "all 0.3s ease",
     },
-    input: { color: "#111827" },
-    label: { color: "#6b7280" },
+    input: { color: "#111827", fontSize: { xs: 13, md: 16 } },
+    label: { color: "#6b7280", fontSize: { xs: 12, md: 14 } },
   }}
 />
-
-
 
 {/* Remember + forgot */}
 <Box
@@ -504,7 +499,7 @@ const Login = () => {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    mb: 3,
+    mb: { xs: 2, md: 3 },
   }}
 >
   <FormControlLabel
@@ -514,20 +509,18 @@ const Login = () => {
         onChange={(e) => setRememberMe(e.target.checked)}
         sx={{
           color: "#000",
-          "&.Mui-checked": {
-            color: "#2563eb",
-          },
+          "&.Mui-checked": { color: "#2563eb" },
         }}
       />
     }
-    label={<Typography sx={{ fontSize: 14, color: "#000" }}>Remember me</Typography>}
+    label={<Typography sx={{ fontSize: { xs: 12, md: 14 }, color: "#000" }}>Remember me</Typography>}
   />
 
   <Typography
     sx={{
       color: "#0f1a65ff",
       cursor: "pointer",
-      fontSize: 14,
+      fontSize: { xs: 12, md: 14 },
       "&:hover": { textDecoration: "underline" },
     }}
     onClick={() => navigate("/forgot-password")}
@@ -535,28 +528,24 @@ const Login = () => {
     Forgot password?
   </Typography>
 </Box>
-
-
-            {/* Login */}
-      <Button
+<Button
   fullWidth
   disabled={loading}
   onClick={handleLogin}
   sx={{
-    py: 1.5,
-    borderRadius: 3, // smoother modern rounding
+    py: { xs: 1, sm: 1.3, md: 1.5 }, // smaller height on mobile
+    borderRadius: { xs: 2, sm: 2.5, md: 3 }, // slightly smaller on mobile
     background: "linear-gradient(90deg, #020b43ff 0%, #031265ff 100%)",
     color: "#fff",
     fontWeight: 700,
-    fontSize: 16,
-    mb: 3,
-    boxShadow: "0 4px 15px rgba(124, 58, 237, 0.3)", // subtle depth
+    fontSize: { xs: 13, sm: 14, md: 16 }, // smaller text on mobile
+    mb: { xs: 2, sm: 2.5, md: 3 }, // responsive margin
+    boxShadow: "0 4px 15px rgba(124, 58, 237, 0.3)", // keep shadow
     transition: "all 0.3s ease",
     "&:hover": {
       opacity: 1,
       background: "linear-gradient(90deg, #0f1a65ff 0%, #0f1a65ff 100%)",
-
-      transform: "translateY(-2px)", // slight lift on hover
+      transform: "translateY(-2px)",
       boxShadow: "0 6px 20px rgba(124, 58, 237, 0.35)",
     },
     "&:disabled": {
@@ -567,8 +556,9 @@ const Login = () => {
     },
   }}
 >
-  {loading ? <CircularProgress size={20} sx={{ color: "#fff" }} /> : "Login"}
+  {loading ? <CircularProgress size={18} sx={{ color: "#fff" }} /> : "Login"}
 </Button>
+
 
             <Typography sx={{ textAlign: "center", color: "#6b7280", mb: 2 }}>Or continue with</Typography>
 

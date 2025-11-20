@@ -26,6 +26,7 @@ import Setting from "./scenes/profile/setting";
 import AdminSecurity from "./scenes/adminSecurity/adminSecurity";
 import Form from "./scenes/form/form";
 import AIDashboard from "./scenes/aiDashboard/aidashboard";
+import DynamicTable from "./components/dynamic-table";
 
 // 🔹 User Dashboard Imports
 import UserDashboardLayout from "./scenes/userDashboard/UserDashboardLayout";
@@ -57,13 +58,14 @@ function App() {
         <CssBaseline />
         <NotificationProvider>
           <Routes>
-            {/* 🌍 Public Routes */}
+
+            {/* 🌍 PUBLIC ROUTES */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* 🛍️ USER DASHBOARD */}
+            {/* 🛍 USER DASHBOARD */}
             <Route
               path="/user-dashboard/*"
               element={
@@ -81,22 +83,6 @@ function App() {
 
             {/* 🧑‍💼 ADMIN DASHBOARD */}
             <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute roles={["admin"]}>
-                  <div className="app">
-                    <Sidebar isSidebar={isSidebar} />
-                    <main className="content">
-                      <Topbar setIsSidebar={setIsSidebar} user={currentUser} />
-                      <Dashboard />
-                    </main>
-                  </div>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* 🔸 ADMIN NESTED ROUTES */}
-            <Route
               path="/admin/*"
               element={
                 <ProtectedRoute roles={["admin"]}>
@@ -110,6 +96,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
+              <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="team" element={<Team />} />
               <Route path="contacts" element={<Contacts />} />
@@ -128,11 +115,25 @@ function App() {
               <Route path="settings" element={<Setting />} />
               <Route path="admin-security" element={<AdminSecurity />} />
               <Route path="ai-dashboard" element={<AIDashboard />} />
+              <Route path="dynamictable" element={<DynamicTable />} />
               <Route path="*" element={<Navigate to="/admin/dashboard" />} />
             </Route>
 
-            {/* ⚠️ Catch-all */}
-            <Route path="*" element={<Navigate to="/" />} />
+            {/* ✅ Shortcut route for /admin-dashboard URL */}
+            <Route
+              path="/admin-dashboard"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <div className="app">
+                    <Sidebar isSidebar={isSidebar} />
+                    <main className="content">
+                      <Topbar setIsSidebar={setIsSidebar} user={currentUser} />
+                      <Dashboard />
+                    </main>
+                  </div>
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </NotificationProvider>
       </ThemeProvider>

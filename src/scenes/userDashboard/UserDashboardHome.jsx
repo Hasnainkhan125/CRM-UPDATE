@@ -183,7 +183,7 @@ const [addSuccess, setAddSuccess] = useState(false);
     right: 0,
     width: "70%",
     height: "90%",
-    background: "linear-gradient(135deg, #12002f, #140028, #1a0035)", // dark neon gradient
+    background: "linear-gradient(135deg, #ff8800ff, #ff8800ff, #ff8800ff)", // dark neon gradient
     clipPath: "polygon(30% 0, 100% 0, 100% 100%, 0 100%)",
     zIndex: 1,
   }}
@@ -195,18 +195,19 @@ const [addSuccess, setAddSuccess] = useState(false);
     key={i}
     sx={{
       position: "absolute",
-      top: `${10 + i * 20}%`,
-      right: 0,
-      width: "75%",
-      height: "8%",
-      background: "rgba(0,255,204,0.15)", // subtle neon glow
-      clipPath: "polygon(35% 0, 100% 0, 100% 100%, 0 100%)",
+     top: 0,
+    right: 0,
+    width: "60%",
+    height: "80%",
+      background: "rgba(255, 255, 255, 0.9)", // orange neon glow
+        clipPath: "polygon(30% 0, 100% 0, 100% 100%, 0 100%)",
       zIndex: 2,
-      filter: "blur(4px)", // soft glow effect
-      transform: `rotate(${i % 2 === 0 ? 1 : -1}deg)`, // slight tilt for dynamism
+      transition: "all 0.4s ease-in-out",
     }}
   />
 ))}
+
+
 
           {/* Left Text Section */}
           <Box
@@ -1064,7 +1065,7 @@ const [addSuccess, setAddSuccess] = useState(false);
   {/* Main Image */}
   <Box
     component="img"
-    src="/assets/shoes/sh6.png"
+    src="/assets/icons/bill.png"
     alt="Main Illustration"
     sx={{
       width: "80%",
@@ -1076,26 +1077,7 @@ const [addSuccess, setAddSuccess] = useState(false);
     }}
   />
 
-  {/* Secondary Floating Image */}
-  <Box
-    component="img"
-    src="/assets/shoes/sh6.png" // Add your second image here
-    alt="Secondary Illustration"
-    sx={{
-      position: "absolute",
-      width: "80%",
-      maxWidth: 750,
-      bottom: "-1%",
-      right: "5%",
-      zIndex: 3,
-      transform: "rotate(-10deg)",
-      filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.2))",
-      transition: "all 0.4s ease",
-      "&:hover": {
-        transform: "rotate(-10deg) translateY(-10px)",
-      },
-    }}
-  />
+
 </Grid>
 </Grid>
 

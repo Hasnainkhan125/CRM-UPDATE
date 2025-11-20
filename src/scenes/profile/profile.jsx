@@ -37,15 +37,18 @@ const Profile = ({ user }) => {
     email: storedData.email || user?.email || "johndoe@example.com",
     role: storedData.role || user?.role || "Admin",
   });
+
   const [profilePic, setProfilePic] = useState(
     storedData.dp || user?.dp || "../../assets/user.png"
   );
+
+  // Store resume as { name, type } only to prevent quota errors
   const [resumeFile, setResumeFile] = useState(storedData.resume || null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hover, setHover] = useState(false);
 
-  const verified = !!resumeFile; // ✅ Verified if resume uploaded
+  const verified = !!resumeFile;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,9 +67,11 @@ const Profile = ({ user }) => {
   const handleResumeUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Store only metadata + small Base64 preview (~100kb) to avoid quota
       const reader = new FileReader();
       reader.onload = () => {
-        setResumeFile({ name: file.name, data: reader.result });
+        const base64Preview = reader.result.slice(0, 1024 * 100); // first 100kb only
+        setResumeFile({ name: file.name, type: file.type, preview: base64Preview });
       };
       reader.readAsDataURL(file);
     }
@@ -99,7 +104,6 @@ const Profile = ({ user }) => {
     setOpenSnackbar(false);
   };
 
-  // 🎨 Role-based color mapping
   const getRoleColor = (role) => {
     switch (role) {
       case "Admin":
@@ -132,14 +136,12 @@ const Profile = ({ user }) => {
         sx={{
           width: "100%",
           maxWidth: 1000,
-          minHeight: "75vh",
           borderRadius: 4,
           display: "flex",
           flexDirection: isTablet ? "column" : "row",
-          gap: 4,
+          gap: isMobile ? 2 : 4,
           p: isMobile ? 2 : 4,
-          background: "#071d01ffx",
-          backdropFilter: "blur(25px)",
+          backdropFilter: "blur(20px)",
           border: "1px solid rgba(255,255,255,0.1)",
           boxShadow: "0 8px 25px rgba(0,0,0,0.3)",
         }}
@@ -186,8 +188,10 @@ const Profile = ({ user }) => {
                 }}
               >
                 <Tooltip title="Change Profile Picture" arrow>
-                  <IconButton component="label">
-                    <PhotoCameraIcon sx={{ color: "white", fontSize: 26 }} />
+                  <IconButton component="label" sx={{ p: isMobile ? 0.5 : 1 }}>
+                    <PhotoCameraIcon
+                      sx={{ color: "white", fontSize: isMobile ? 20 : 26 }}
+                    />
                     <input
                       type="file"
                       hidden
@@ -200,21 +204,27 @@ const Profile = ({ user }) => {
             </Fade>
           </Box>
 
-          <Typography variant={isMobile ? "h6" : "h5"} fontWeight="bold" color={colors.grey[100]}>
+          <Typography
+            variant={isMobile ? "h6" : "h5"}
+            fontWeight="bold"
+            color={colors.grey[100]}
+          >
             {formData.name}
           </Typography>
           <Typography
             variant="subtitle1"
-            sx={{ color: verified ? roleColor : colors.redAccent[400], fontWeight: "bold" }}
+            sx={{
+              color: verified ? roleColor : colors.redAccent[400],
+              fontWeight: "bold",
+            }}
           >
             {verified ? formData.role : "Unverified"}
           </Typography>
 
-          {/* Verified Badge */}
           <Box
             sx={{
               mt: 2,
-              px: 3,
+              px: isMobile ? 2 : 3,
               py: 1,
               borderRadius: "30px",
               display: "flex",
@@ -224,42 +234,73 @@ const Profile = ({ user }) => {
               color: verified ? "#fff" : colors.redAccent[400],
               background: verified ? roleColor : "rgba(255,255,255,0.1)",
               border: verified ? "none" : `1px solid ${colors.redAccent[400]}`,
+              fontSize: isMobile ? "0.7rem" : "0.85rem",
             }}
           >
             {verified ? (
               <>
-                <CheckCircleIcon sx={{ color: "#fff", fontSize: 20 }} />
+                <CheckCircleIcon
+                  sx={{ color: "#fff", fontSize: isMobile ? 16 : 20 }}
+                />
                 Verified User
               </>
             ) : (
               <>
-                <ErrorIcon sx={{ color: colors.redAccent[400], fontSize: 20 }} />
+                <ErrorIcon
+                  sx={{ color: colors.redAccent[400], fontSize: isMobile ? 16 : 20 }}
+                />
                 Unverified User
               </>
             )}
           </Box>
 
-          <Divider sx={{ my: 3, width: "80%", borderColor: "rgba(255,255,255,0.1)" }} />
-   
+          <Divider
+            sx={{ my: 3, width: "80%", borderColor: "rgba(255,255,255,0.1)" }}
+          />
         </Box>
 
         {/* RIGHT SIDE */}
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h4" fontWeight="bold" color={colors.grey[100]} mb={3}>
+          <Typography
+            variant={isMobile ? "h5" : "h4"}
+            fontWeight="bold"
+            color={colors.grey[100]}
+            mb={3}
+          >
             Edit Profile
           </Typography>
 
-          <Grid container spacing={3}>
+          <Grid container spacing={isMobile ? 2 : 3}>
             <Grid item xs={12}>
-              <TextField fullWidth label="Name" name="name" variant="filled" value={formData.name} onChange={handleChange} />
+              <TextField
+                fullWidth
+                label="Name"
+                name="name"
+                variant="filled"
+                size={isMobile ? "small" : "medium"}
+                value={formData.name}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12}>
-              <TextField fullWidth label="Email" name="email" variant="filled" value={formData.email} onChange={handleChange} />
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                variant="filled"
+                size={isMobile ? "small" : "medium"}
+                value={formData.email}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12}>
-              <FormControl fullWidth variant="filled">
+              <FormControl
+                fullWidth
+                variant="filled"
+                size={isMobile ? "small" : "medium"}
+              >
                 <InputLabel>Role</InputLabel>
                 <Select name="role" value={formData.role} onChange={handleChange}>
                   <MenuItem value="Admin">Admin</MenuItem>
@@ -271,30 +312,77 @@ const Profile = ({ user }) => {
             </Grid>
 
             <Grid item xs={12}>
-              <Button variant="contained" component="label" sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                component="label"
+                sx={{
+                  mt: 2,
+                  width: isMobile ? "100%" : "auto",
+                  fontSize: isMobile ? "0.75rem" : "0.9rem",
+                }}
+              >
                 Upload Resume
-                <input type="file" hidden accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
+                <input
+                  type="file"
+                  hidden
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleResumeUpload}
+                />
               </Button>
               {resumeFile && (
-                <Typography sx={{ mt: 1, color: colors.greenAccent[400] }}>
+                <Typography
+                  sx={{
+                    mt: 1,
+                    color: colors.greenAccent[400],
+                    fontSize: isMobile ? "0.7rem" : "0.85rem",
+                  }}
+                >
                   Uploaded: {resumeFile.name}
                 </Typography>
               )}
             </Grid>
           </Grid>
 
-          <Box mt={4} display="flex" gap={2} justifyContent="flex-end">
-            <Button variant="outlined" onClick={handleClear} color="error">
+          <Box
+            mt={4}
+            display="flex"
+            flexDirection={isMobile ? "column" : "row"}
+            gap={2}
+            justifyContent={isMobile ? "stretch" : "flex-end"}
+          >
+            <Button
+              variant="outlined"
+              onClick={handleClear}
+              color="error"
+              size={isMobile ? "small" : "medium"}
+            >
               Reset
             </Button>
-            <Button variant="contained" onClick={handleSave} disabled={loading}>
-              {loading ? <CircularProgress size={20} color="inherit" /> : "Save Changes"}
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={loading}
+              size={isMobile ? "small" : "medium"}
+              sx={{ width: isMobile ? "100%" : "auto" }}
+            >
+              {loading ? (
+                <CircularProgress
+                  size={isMobile ? 18 : 20}
+                  color="inherit"
+                />
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </Box>
         </Box>
       </Box>
 
-      <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+      >
         <Alert onClose={handleCloseSnackbar} severity="success">
           ✅ Profile updated successfully!
         </Alert>

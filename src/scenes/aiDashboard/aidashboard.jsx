@@ -281,7 +281,10 @@ const PaymentManagementPage = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", justifyContent: "center", alignItems: "center", p: 2 }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", justifyContent: "center", alignItems: "center",
+    
+    
+    p: 2 }}>
       <Paper elevation={6} sx={{ width: "100%", maxWidth: 980, borderRadius: 3, p: 3 }}>
         {/* Top: Show quick notify area if there's a lastPayment */}
         {lastPayment && (

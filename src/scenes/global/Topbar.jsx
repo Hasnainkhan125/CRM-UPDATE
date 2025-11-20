@@ -31,13 +31,16 @@ import { useNotifications } from "../../context/NotificationContext";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
+import { useMediaQuery } from "@mui/material";
 
-const Topbar = ({ user }) => {
+const Topbar = ({ user, toggleSidebar }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const colorMode = useContext(ColorModeContext);
   const { notifications, clearNotifications } = useNotifications();
   const navigate = useNavigate();
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Notifications dropdown
   const [anchorEl, setAnchorEl] = useState(null);
@@ -62,12 +65,11 @@ const Topbar = ({ user }) => {
 
   const handleSettingsPage = () => {
     handleProfileClose();
-    navigate("/admin/settings"); // ✅ Navigate to settings
+    navigate("/admin/settings");
   };
 
   // Profile picture
   const [profilePic, setProfilePic] = useState(user?.dp || "../../assets/user.png");
-
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("profileData"));
     if (storedData?.dp) setProfilePic(storedData.dp);
@@ -85,7 +87,6 @@ const Topbar = ({ user }) => {
   // Logout state
   const [loadingLogout, setLoadingLogout] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
-
   const handleLogout = () => {
     setConfirmLogout(false);
     setLoadingLogout(true);
@@ -150,12 +151,8 @@ const Topbar = ({ user }) => {
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>Are you sure you want to logout?</DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmLogout(false)} color="primary">
-            No
-          </Button>
-          <Button onClick={handleLogout} color="error">
-            Yes
-          </Button>
+          <Button onClick={() => setConfirmLogout(false)} color="primary">No</Button>
+          <Button onClick={handleLogout} color="error">Yes</Button>
         </DialogActions>
       </Dialog>
 
@@ -182,15 +179,15 @@ const Topbar = ({ user }) => {
             src="/assets/logo/logo1.png"
             alt="Loading Logo"
             sx={{
-              width: 120,
-              height: 120,
+              width: isSmall ? 80 : 120,
+              height: isSmall ? 80 : 120,
               objectFit: "contain",
               mb: 3,
               animation: "pulseRotate 2s infinite",
             }}
           />
           <Typography
-            variant="h2"
+            variant={isSmall ? "h4" : "h2"}
             fontWeight="bold"
             sx={{ color: "#000", fontFamily: "Poppins, sans-serif", mb: 3, textAlign: "center" }}
           >
@@ -199,7 +196,7 @@ const Topbar = ({ user }) => {
           <Typography
             sx={{
               color: "#888",
-              fontSize: "0.95rem",
+              fontSize: isSmall ? "0.75rem" : "0.95rem",
               fontWeight: 700,
               fontFamily: "Poppins, sans-serif",
               textAlign: "center",
@@ -221,7 +218,14 @@ const Topbar = ({ user }) => {
       </Fade>
 
       {/* Topbar Content */}
-      <Box display="flex" justifyContent="space-between" p={2} position="relative">
+      <Box display="flex" justifyContent="space-between" p={isSmall ? 1 : 2} position="relative" alignItems="center">
+        {/* Sidebar Toggle for Small Screens */}
+        {isSmall && (
+          <IconButton onClick={toggleSidebar} sx={{ mr: 1, color: colors.grey[100] }}>
+            <MenuOutlinedIcon fontSize="medium" />
+          </IconButton>
+        )}
+
         {/* Search Bar */}
         <Box display="flex" flexDirection="column" width={{ xs: "100%", sm: "250px" }}>
           <Box
@@ -233,14 +237,15 @@ const Topbar = ({ user }) => {
                 : `linear-gradient(145deg, ${alpha(colors.primary[400], 0.6)}, ${alpha(colors.primary[400], 0.8)})`,
               borderRadius: "50px",
               border: "1px solid black",
-              px: 2,
-              py: 0.5,
+              px: isSmall ? 1 : 2,
+              py: isSmall ? 0.25 : 0.5,
             }}
           >
             <InputBase
               sx={{
                 ml: 1,
                 flex: 1,
+                fontSize: isSmall ? "0.7rem" : "0.9rem",
                 color: colors.grey[100],
                 "& input::placeholder": { color: colors.grey[100], opacity: 0.9 },
               }}
@@ -256,7 +261,7 @@ const Topbar = ({ user }) => {
                 suggestions.length > 0 && handleSelectSuggestion(suggestions[0])
               }
             >
-              <SearchIcon />
+              <SearchIcon fontSize={isSmall ? "small" : "medium"} />
             </IconButton>
           </Box>
 
@@ -265,7 +270,10 @@ const Topbar = ({ user }) => {
               <List dense>
                 {suggestions.map((key) => (
                   <ListItem key={key} disablePadding>
-                    <ListItemButton onClick={() => handleSelectSuggestion(key)}>
+                    <ListItemButton
+                      onClick={() => handleSelectSuggestion(key)}
+                      sx={{ fontSize: isSmall ? "0.7rem" : "0.9rem" }}
+                    >
                       {key.charAt(0).toUpperCase() + key.slice(1)}
                     </ListItemButton>
                   </ListItem>
@@ -276,19 +284,23 @@ const Topbar = ({ user }) => {
         </Box>
 
         {/* Right-side Icons */}
-        <Box display="flex" alignItems="center" ml={2}>
+        <Box display="flex" alignItems="center" ml={isSmall ? 1 : 2} gap={isSmall ? 0.5 : 1}>
           <IconButton onClick={colorMode.toggleColorMode}>
-            {theme.palette.mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
+            {theme.palette.mode === "dark" ? (
+              <DarkModeOutlinedIcon fontSize={isSmall ? "small" : "medium"} />
+            ) : (
+              <LightModeOutlinedIcon fontSize={isSmall ? "small" : "medium"} />
+            )}
           </IconButton>
 
           <IconButton onClick={handleClick}>
             <Badge badgeContent={notifications.length} color="error" overlap="circular">
-              <NotificationsIcon />
+              <NotificationsIcon fontSize={isSmall ? "small" : "medium"} />
             </Badge>
           </IconButton>
 
           <IconButton onClick={handleProfileClick}>
-            <Avatar src={profilePic} alt={user?.name || "User"} sx={{ width: 32, height: 32 }} />
+            <Avatar src={profilePic} alt={user?.name || "User"} sx={{ width: isSmall ? 24 : 32, height: isSmall ? 24 : 32 }} />
           </IconButton>
         </Box>
 
@@ -297,16 +309,19 @@ const Topbar = ({ user }) => {
           anchorEl={anchorEl}
           open={open}
           onClose={handleClose}
-          PaperProps={{ sx: { mt: 1.5, minWidth: 250, backgroundColor: colors.primary[400] } }}
+          PaperProps={{ sx: { mt: 1.5, minWidth: isSmall ? 150 : 250, backgroundColor: colors.primary[400] } }}
         >
           {notifications.length === 0 ? (
-            <MenuItem disabled>No new notifications</MenuItem>
+            <MenuItem disabled sx={{ fontSize: isSmall ? "0.7rem" : "0.9rem" }}>No new notifications</MenuItem>
           ) : (
             <>
               {notifications.map((n) => (
-                <MenuItem key={n.id}>{n.message}</MenuItem>
+                <MenuItem key={n.id} sx={{ fontSize: isSmall ? "0.7rem" : "0.9rem" }}>{n.message}</MenuItem>
               ))}
-              <MenuItem onClick={handleClear} sx={{ color: "red", fontWeight: 600 }}>
+              <MenuItem
+                onClick={handleClear}
+                sx={{ color: "red", fontWeight: 600, fontSize: isSmall ? "0.7rem" : "0.9rem" }}
+              >
                 Clear all
               </MenuItem>
             </>
@@ -318,19 +333,20 @@ const Topbar = ({ user }) => {
           anchorEl={profileAnchor}
           open={profileOpen}
           onClose={handleProfileClose}
-          PaperProps={{ sx: { mt: 1.5, minWidth: 180, backgroundColor: colors.primary[400] } }}
+          PaperProps={{ sx: { mt: 1.5, minWidth: isSmall ? 150 : 180, backgroundColor: colors.primary[400] } }}
         >
-          <MenuItem onClick={handleProfilePage}>
-            <PersonOutlineIcon sx={{ mr: 1 }} /> Profile
+          <MenuItem onClick={handleProfilePage} sx={{ fontSize: isSmall ? "0.7rem" : "0.9rem" }}>
+            <PersonOutlineIcon sx={{ mr: 1, fontSize: isSmall ? 14 : 18 }} /> Profile
           </MenuItem>
-          <MenuItem onClick={handleSettingsPage}> {/* ✅ Navigate to settings */}
-            <SettingsOutlinedIcon sx={{ mr: 1 }} /> Settings
+          <MenuItem onClick={handleSettingsPage} sx={{ fontSize: isSmall ? "0.7rem" : "0.9rem" }}>
+            <SettingsOutlinedIcon sx={{ mr: 1, fontSize: isSmall ? 14 : 18 }} /> Settings
           </MenuItem>
           <MenuItem
             onClick={() => setConfirmLogout(true)}
             sx={{
               color: "#e53935",
-              "& svg": { color: "#e53935" },
+              fontSize: isSmall ? "0.7rem" : "0.9rem",
+              "& svg": { color: "#e53935", fontSize: isSmall ? 14 : 18 },
               "&:hover": { backgroundColor: "rgba(229, 57, 53, 0.1)" },
             }}
           >
