@@ -81,9 +81,9 @@ const CheckoutForm = () => {
       setLoading(false);
 
       if (paymentMethod === "JazzCash") {
-        setShowJazzCashPopup(true); // show popup for JazzCash
+        setShowJazzCashPopup(true);
       } else {
-        setOrderPlaced(true); // COD / Visa / PayPal
+        setOrderPlaced(true);
       }
     }, 2000);
   };
@@ -96,13 +96,13 @@ const CheckoutForm = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          px: 3,
+          px: { xs: 2, sm: 3 },
         }}
       >
         <Paper
           elevation={10}
           sx={{
-            p: 5,
+            p: { xs: 3, sm: 5 },
             borderRadius: 4,
             textAlign: "center",
             maxWidth: 500,
@@ -110,7 +110,7 @@ const CheckoutForm = () => {
           }}
         >
           <CheckCircleOutlineIcon
-            sx={{ fontSize: 90, color: "#4caf50", mb: 2 }}
+            sx={{ fontSize: { xs: 70, sm: 90 }, color: "#4caf50", mb: 2 }}
           />
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
             Thank You!
@@ -128,8 +128,8 @@ const CheckoutForm = () => {
       sx={{
         minHeight: "100vh",
         background: "linear-gradient(180deg, #f0f4ff 0%, #d9e4ff 100%)",
-        py: 6,
-        px: 3,
+        py: { xs: 4, md: 6 },
+        px: { xs: 2, sm: 3 },
       }}
     >
       <Box sx={{ maxWidth: 1200, mx: "auto" }}>
@@ -140,10 +140,11 @@ const CheckoutForm = () => {
             fontWeight: 700,
             letterSpacing: 1,
             textAlign: "center",
-            mb: 1,
+            mb: { xs: 1, sm: 2 },
             background: "linear-gradient(90deg, #667eea, #764ba2)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
+            fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
           }}
         >
           ShopEase
@@ -153,8 +154,9 @@ const CheckoutForm = () => {
           sx={{
             color: "#555",
             textAlign: "center",
-            mb: 6,
+            mb: { xs: 4, md: 6 },
             letterSpacing: 0.5,
+            fontSize: { xs: 14, sm: 16 },
           }}
         >
           Your One-Stop Shop for Everything
@@ -164,14 +166,14 @@ const CheckoutForm = () => {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
-            gap: 4,
+            gap: { xs: 3, md: 4 },
           }}
         >
           {/* Left Form */}
           <Paper
             sx={{
               flex: 2,
-              p: 5,
+              p: { xs: 3, sm: 5 },
               borderRadius: 4,
               boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
               bgcolor: "#ffffff",
@@ -307,7 +309,7 @@ const CheckoutForm = () => {
               />
             )}
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
               <Button
                 variant="outlined"
                 color="secondary"
@@ -327,9 +329,7 @@ const CheckoutForm = () => {
                   borderRadius: 3,
                   background: "linear-gradient(90deg,#667eea,#764ba2)",
                   boxShadow: "0 4px 15px rgba(118,75,162,0.3)",
-                  "&:hover": {
-                    background: "linear-gradient(90deg,#764ba2,#667eea)",
-                  },
+                  "&:hover": { background: "linear-gradient(90deg,#764ba2,#667eea)" },
                 }}
                 disabled={loading}
               >
@@ -342,10 +342,11 @@ const CheckoutForm = () => {
           <Paper
             sx={{
               flex: 1,
-              p: 4,
+              p: { xs: 3, sm: 4 },
               borderRadius: 4,
               boxShadow: "0 12px 30px rgba(0,0,0,0.1)",
               bgcolor: "#f7f8fc",
+              mt: { xs: 4, md: 0 },
             }}
           >
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 700 }}>
@@ -367,6 +368,7 @@ const CheckoutForm = () => {
                       justifyContent: "space-between",
                       boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                       "&:hover": { boxShadow: "0 8px 20px rgba(0,0,0,0.12)" },
+                      flexWrap: "wrap",
                     }}
                   >
                     <Box
@@ -387,7 +389,7 @@ const CheckoutForm = () => {
                         style={{ width: "100%", height: "100%", objectFit: "contain" }}
                       />
                     </Box>
-                    <Box sx={{ flex: 1, px: 2 }}>
+                    <Box sx={{ flex: 1, px: 2, minWidth: 120 }}>
                       <Typography sx={{ fontWeight: 600 }}>{item.name}</Typography>
                       <Typography sx={{ color: "#666", fontSize: 13 }}>Qty: {item.quantity || 1}</Typography>
                     </Box>

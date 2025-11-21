@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, TextField, Button, Avatar, IconButton, Snackbar, Slide, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  IconButton,
+  CircularProgress,
+  Snackbar,
+  Slide,
+  Alert,
+  InputAdornment,
+  Icon,
+} from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useNavigate } from "react-router-dom";
 
 const UserProfile = () => {
-  const navigate = useNavigate(); // Hook for navigation
-  const [user, setUser] = useState({ name: "", email: "", avatar: "" });
+  const navigate = useNavigate();
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    password: "",
+    bio: "",
+    avatar: "",
+  });
   const [preview, setPreview] = useState("");
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar state
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Load user from localStorage
   useEffect(() => {
@@ -17,14 +42,11 @@ const UserProfile = () => {
     setPreview(storedUser.avatar || "");
   }, []);
 
-  // Handle input change
   const handleChange = (e) => setUser({ ...user, [e.target.name]: e.target.value });
 
-  // Handle image upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result);
@@ -32,42 +54,78 @@ const UserProfile = () => {
     };
     reader.readAsDataURL(file);
   };
-  
 
-  // Save user to localStorage and show snackbar
-const handleSave = () => {
-  localStorage.setItem("currentUser", JSON.stringify(user));
-  setSnackbarOpen(true);
-  window.dispatchEvent(new Event("profileUpdated")); // ✅ Notify topbar to update avatar
-};
+  const handleSave = () => {
+    setLoading(true);
+    setTimeout(() => {
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      window.dispatchEvent(new Event("profileUpdated"));
+      setLoading(false);
+      setSnackbarOpen(true);
+      setTimeout(() => navigate("/user-dashboard"), 1000); // Redirect after save
+    }, 1500);
+  };
 
-
-  // Slide animation for Snackbar
   function SlideLeft(props) {
     return <Slide {...props} direction="left" />;
   }
 
   return (
-    <Box sx={{ p: 6, maxWidth: 600, mx: "auto" }}>
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 500,
+        mx: "auto",
+        mt: 3,
+        p: 4,
+        bgcolor: "#fff",
+        borderRadius: 4,
+        boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      {/* Floating Avatar */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: -20,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <Avatar
+          src={preview || ""}
+          sx={{
+            width: 100,
+            height: 100,
+            border: "4px solid #7e22ce",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+          }}
+        />
+      </Box>
+
       {/* Back Button */}
       <IconButton
         onClick={() => navigate(-1)}
-        sx={{ mb: 3, color: "#7e22ce", bgcolor: "#f0f0f0", "&:hover": { bgcolor: "#e0d4f7" } }}
+        sx={{
+          alignSelf: "flex-start",
+          color: "#7e22ce",
+          "&:hover": { bgcolor: "#f3e8ff" },
+          mt: 1,
+        }}
       >
         <ArrowBackIcon />
-        <Typography ml={1}>Back</Typography>
       </IconButton>
 
-      <Typography variant="h4" mb={3} fontWeight="bold" textAlign="center">
-        Your Profile
+      <Typography variant="h5" fontWeight="bold" textAlign="center" mt={1}>
+        Edit Profile
       </Typography>
 
-      {/* Avatar + Upload */}
-      <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" mb={4}>
-        <Avatar
-          src={preview || ""}
-          sx={{ width: 120, height: 120, mb: 2, border: "2px solid #7e22ce" }}
-        />
+      {/* Upload Button */}
+      <Box display="flex" justifyContent="center" mb={2}>
         <label htmlFor="avatar-upload">
           <input
             accept="image/*"
@@ -76,27 +134,51 @@ const handleSave = () => {
             style={{ display: "none" }}
             onChange={handleImageUpload}
           />
-          <Button variant="outlined" component="span" startIcon={<PhotoCamera />}>
-            Upload Photo
+          <Button
+            variant="contained"
+            component="span"
+            startIcon={<PhotoCamera />}
+            sx={{
+              textTransform: "none",
+              borderRadius: 3,
+              background: "linear-gradient(90deg,#7e22ce,#d946ef)",
+              "&:hover": { opacity: 0.85 },
+            }}
+          >
+            Change Avatar
           </Button>
         </label>
       </Box>
 
-      {/* Name & Email */}
+      {/* Input Fields */}
+      <TextField label="Name" name="name" fullWidth value={user.name} onChange={handleChange} />
+      <TextField label="Email" name="email" fullWidth value={user.email} onChange={handleChange} />
+      <TextField label="Phone" name="phone" fullWidth value={user.phone} onChange={handleChange} />
+      <TextField label="Address" name="address" fullWidth value={user.address} onChange={handleChange} />
       <TextField
-        label="Name"
-        name="name"
+        label="Password"
+        name="password"
+        type={showPassword ? "text" : "password"}
         fullWidth
-        sx={{ mb: 2 }}
-        value={user.name}
+        value={user.password}
         onChange={handleChange}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
       <TextField
-        label="Email"
-        name="email"
+        label="Bio"
+        name="bio"
         fullWidth
-        sx={{ mb: 2 }}
-        value={user.email}
+        multiline
+        rows={3}
+        value={user.bio}
         onChange={handleChange}
       />
 
@@ -104,16 +186,28 @@ const handleSave = () => {
       <Button
         variant="contained"
         fullWidth
-        sx={{ mt: 2, py: 1.5, fontSize: 16, fontWeight: "bold", background: "linear-gradient(90deg,#ff00cc,#3333ff)" }}
         onClick={handleSave}
+        disabled={loading}
+        sx={{
+          py: 1.2,
+          mt: 1,
+          fontWeight: "bold",
+          fontSize: 16,
+          borderRadius: 3,
+          background: "linear-gradient(90deg,#7e22ce,#d946ef)",
+          "&:hover": { opacity: 0.9 },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
-        Save Profile
+        {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Save Profile"}
       </Button>
 
-      {/* Success Snackbar */}
+      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={2500}
+        autoHideDuration={2000}
         onClose={() => setSnackbarOpen(false)}
         TransitionComponent={SlideLeft}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
